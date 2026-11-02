@@ -159,6 +159,10 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 
 #checklistItemsUl textarea{min-width:0;width:100%;resize:vertical;line-height:1.45;color:#294333;min-height:3em;overflow-wrap:anywhere}#checklistItemsUl li{align-items:center}#checklistItemsUl li>div{cursor:pointer}#bearCard>.w-full:first-of-type{z-index:1}#bearCard>.relative{z-index:1}#secondTimerCard.hidden{display:none!important}
+
+#lessonEditor:not(.hidden){display:flex;align-items:center;justify-content:center;background:#102c26bF;backdrop-filter:blur(8px);z-index:70}
+.lesson-form{width:min(560px,100%);max-height:92vh;overflow-y:auto;background:#fffdf3;padding:26px;border-radius:24px;box-shadow:0 20px 70px #0005;color:#234532}.lesson-form h2{font-size:28px;margin-bottom:15px}.lesson-form label{display:flex;flex-direction:column;gap:5px;font-size:14px;font-weight:700;margin-bottom:13px}.lesson-form input,.lesson-form select,.lesson-form textarea{background:#fff;border:1px solid #becdb7;border-radius:9px;padding:9px;width:100%;font-size:16px;color:#234532}.lesson-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.lesson-form p{font-size:13px;line-height:1.5;margin-bottom:12px}.lesson-actions{display:flex;justify-content:flex-end;gap:10px}.lesson-actions button{padding:10px 17px;border-radius:12px;background:#e7eddd;font-weight:700}.lesson-actions .save-lesson{background:#245b3e;color:white}#lessonError{color:#b91c1c}
+.timer-entry{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:5px 0}.timer-entry label{font-size:10px;font-weight:700;color:#45604c;display:flex;align-items:center;gap:3px}.timer-entry input{width:49px!important;min-height:30px;border:1px solid #c7d2bf;border-radius:7px;background:#fff;padding:4px;font:700 14px monospace!important;text-align:center}.timer-entry button{background:#e4edd7;color:#294e36;border-radius:8px;padding:6px 8px;font-size:11px;font-weight:700}.timer-entry input::-webkit-inner-spin-button{opacity:1}.editLessonBtn{font-size:12px;font-weight:700;color:#245b3e;background:#e2edda;padding:5px 10px;border-radius:8px}#rightSideContainer>.grid>.glass-card{min-height:190px}
 </style>
 </head>
 <body class="nature-bg min-h-screen text-slate-800 flex flex-col justify-between overflow-x-hidden relative">
@@ -178,6 +182,20 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
       </div>
     </div>
   </div>
+
+
+<div id="lessonEditor" class="hidden fixed inset-0 z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="lessonEditorTitle">
+ <form id="lessonForm" class="lesson-form">
+ <h2 id="lessonEditorTitle" class="font-fun">Redigera lektion</h2>
+ <label>Ämne / rubrik<input id="lessonSubject" required maxlength="120" placeholder="Till exempel SO"></label>
+ <div class="lesson-fields"><label>Klass<select id="lessonClass"></select></label><label>Längd i minuter<input id="lessonDuration" type="number" min="1" max="1440" required value="60"></label></div>
+ <div class="lesson-fields"><label>Starttid<input id="lessonStart" type="time"></label><label>Sluttid<input id="lessonEnd" type="time"></label></div>
+ <p id="lessonTimeHelp">Fyll i start och slut så räknas längden ut automatiskt. Du kan också ange enbart längd.</p>
+ <label>Lektionspunkter – en per rad<textarea id="lessonPoints" rows="4" maxlength="5000"></textarea></label>
+ <p id="lessonError" role="alert"></p>
+ <div class="lesson-actions"><button type="button" id="cancelLessonEdit">Avbryt</button><button type="submit" class="save-lesson">Spara lektion</button></div>
+ </form>
+</div>
 
   <!-- ======================================================================= -->
   <!-- 1. TOPPSTATUS & SNABBKONTROLLER (FRAMME PÅ TAVLAN) -->
@@ -372,7 +390,7 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
               <h3 class="font-bold text-sm text-slate-800">Projekt: profilapp-7101f</h3>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed mb-3">
-              Det här är originalets förberedda panel för Firebase. Molnsynk är ännu inte implementerad; en API-nyckel ensam ansluter inte appen. Ändringar och resultat finns endast under den öppna sessionen.
+              Det här är originalets förberedda panel för Firebase. Molnsynk är ännu inte implementerad; en API-nyckel ensam ansluter inte appen. Veckoschemat sparas i den här webbläsaren. Resultat finns endast under den öppna sessionen.
             </p>
             <div class="space-y-3">
               <div>
@@ -499,12 +517,7 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
             </div>
 
             <!-- Snabbknappar för minuter -->
-            <div class="flex items-center gap-1 my-1">
-              <button class="adjustTimerBtn px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-600" data-timer="1" data-delta="-5">-5m</button>
-              <button class="adjustTimerBtn px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-600" data-timer="1" data-delta="1">+1m</button>
-              <button class="adjustTimerBtn px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-600" data-timer="1" data-delta="5">+5m</button>
-              <button class="adjustTimerBtn px-2 py-0.5 rounded bg-rose-100 hover:bg-rose-200 text-[10px] font-bold text-rose-700" data-timer="1" data-set="65">65m</button>
-            </div>
+            <div class="timer-entry"><label>h <input type="number" id="timer1Hours" aria-label="Timer 1 timmar" min="0" max="23" step="1" value="0"></label><label>min <input type="number" id="timer1Minutes" aria-label="Timer 1 minuter" min="0" max="59" step="1" value="0"></label><button id="timer1SetBtn" type="button">Ställ in</button></div>
 
             <div class="flex gap-1.5 w-full mt-1">
               <button id="timer1ToggleBtn" class="flex-1 py-1 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-sm">Starta</button>
@@ -528,12 +541,7 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
               </div>
             </div>
 
-            <div class="flex items-center gap-1 my-1">
-              <button class="adjustTimerBtn px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-600" data-timer="2" data-delta="-5">-5m</button>
-              <button class="adjustTimerBtn px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-600" data-timer="2" data-delta="1">+1m</button>
-              <button class="adjustTimerBtn px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-600" data-timer="2" data-delta="5">+5m</button>
-              <button class="adjustTimerBtn px-2 py-0.5 rounded bg-indigo-100 hover:bg-indigo-200 text-[10px] font-bold text-indigo-700" data-timer="2" data-set="15">15m</button>
-            </div>
+            <div class="timer-entry"><label>h <input type="number" id="timer2Hours" aria-label="Timer 2 timmar" min="0" max="23" step="1" value="0"></label><label>min <input type="number" id="timer2Minutes" aria-label="Timer 2 minuter" min="0" max="59" step="1" value="0"></label><button id="timer2SetBtn" type="button">Ställ in</button></div>
 
             <div class="flex gap-1.5 w-full mt-1">
               <button id="timer2ToggleBtn" class="flex-1 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-sm">Starta</button>
@@ -717,6 +725,7 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
   <!-- JAVASCRIPT: LOGIK, MATEMATISK FORMEL, TIMERS & DASHBOARD -->
   <!-- ======================================================================= -->
   <script type="module">
+    function escapeHTML(value) { return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
     // Huvudtillstånd
     const state = {
       teachers: ["Benny Gustafsson", "Anna Andersson", "Johan Lind", "Maria Ek"],
@@ -787,6 +796,49 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
         { className: "7A", unbrokenSec: 1420, activeSec: 3600, silenceSec: 3240, sens: 3, teacher: "Maria Ek", isWeek: false }
       ]
     };
+
+    let activeLessonId = null;
+    let editingLesson = null;
+    const scheduleKey = 'klasskampen-schedule-v2';
+    try {
+      const stored = JSON.parse(localStorage.getItem(scheduleKey));
+      if (stored && Object.keys(state.schedule).every(day => Array.isArray(stored[day]) && stored[day].every(l => typeof l.subject === 'string' && Number.isFinite(l.durationMin) && l.durationMin > 0 && typeof l.classTarget === 'string' && Array.isArray(l.checklist) && l.checklist.every(x => typeof x === 'string')))) state.schedule = stored;
+    } catch {}
+    function saveSchedule() { try { localStorage.setItem(scheduleKey, JSON.stringify(state.schedule)); } catch { document.getElementById('lessonTimeHelp').textContent = 'Webbläsaren kunde inte spara schemat. Ändringen finns kvar tills sidan laddas om.'; } }
+    function minutesBetween(start, end) {
+      if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end)) return null;
+      const toMin = t => Number(t.slice(0,2))*60 + Number(t.slice(3));
+      const diff = toMin(end)-toMin(start);
+      return diff > 0 ? diff : null;
+    }
+    function durationFromTitle(title) {
+      const m = title.match(/(\d{1,2}[:.]\d{2})\s*[–—-]\s*(\d{1,2}[:.]\d{2})/);
+      return m ? minutesBetween(m[1].replace('.',':').padStart(5,'0'),m[2].replace('.',':').padStart(5,'0')) : null;
+    }
+    function syncTimerFields(n) {
+      const minutes = Math.ceil(state[`timer${n}RemainingSec`] / 60);
+      document.getElementById(`timer${n}Hours`).value = Math.floor(minutes / 60);
+      document.getElementById(`timer${n}Minutes`).value = minutes % 60;
+    }
+    function openLessonEditor(lesson = null) {
+      editingLesson = lesson;
+      const get = id => document.getElementById(id);
+      get('lessonEditorTitle').textContent = lesson ? 'Redigera lektion' : 'Ny lektion';
+      const title = lesson?.subject || '';
+      const match = title.match(/(\d{1,2}:\d{2})\s*[–—-]\s*(\d{1,2}:\d{2})/);
+      get('lessonSubject').value = match ? title.replace(match[0],'').trim() : title;
+      get('lessonStart').value = match ? match[1].padStart(5,'0') : '';
+      get('lessonEnd').value = match ? match[2].padStart(5,'0') : '';
+      get('lessonDuration').value = durationFromTitle(title) || lesson?.durationMin || 60;
+      get('lessonPoints').value = (lesson?.checklist || ['Startuppgift','Eget arbete','Exit ticket']).join('\n');
+      get('lessonClass').replaceChildren();
+      const classes = [...new Set([...state.classes, ...(lesson ? [lesson.classTarget] : [])])];
+      classes.forEach(c => { const option = document.createElement('option'); option.value=c; option.textContent=c; get('lessonClass').appendChild(option); });
+      get('lessonClass').value = lesson?.classTarget || state.activeClass;
+      get('lessonError').textContent = '';
+      get('lessonEditor').classList.remove('hidden');
+      get('lessonSubject').focus();
+    }
 
     // Känslighetströsklar
     const THRESHOLD_VALS = {
@@ -1125,15 +1177,15 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
         const card = document.createElement("div");
         card.className = "glass-panel-warm rounded-2xl p-4 border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all flex flex-col justify-between cursor-pointer group";
 
-        const previewList = lesson.checklist.slice(0, 3).map(c => `• ${c}`).join("<br>");
+        const previewList = lesson.checklist.slice(0, 3).map(c => `• ${escapeHTML(c)}`).join("<br>");
 
         card.innerHTML = `
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs font-black font-fun px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800">${lesson.classTarget}</span>
+              <span class="text-xs font-black font-fun px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800">${escapeHTML(lesson.classTarget)}</span>
               <span class="text-xs font-bold font-mono text-slate-600">${lesson.durationMin} min</span>
             </div>
-            <h4 class="font-bold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">${lesson.subject}</h4>
+            <h4 class="font-bold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">${escapeHTML(lesson.subject)}</h4>
             <div class="text-[11px] text-slate-500 mt-2 line-clamp-3 leading-relaxed">
               ${previewList}
             </div>
@@ -1143,7 +1195,8 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
               <span>Starta lektion</span>
               <i data-lucide="play" class="w-3 h-3"></i>
             </span>
-            <button class="deleteLessonBtn text-slate-300 hover:text-rose-500 p-1" data-id="${lesson.id}">
+            <button type="button" class="editLessonBtn">Redigera</button>
+            <button aria-label="Ta bort lektion" class="deleteLessonBtn text-slate-300 hover:text-rose-500 p-1" data-id="${lesson.id}">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -1151,14 +1204,18 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
 
         // Klicka på kortet: ladda lektionen direkt på tavlan!
         card.addEventListener("click", (e) => {
-          if (e.target.closest(".deleteLessonBtn")) return;
+          if (e.target.closest(".deleteLessonBtn, .editLessonBtn")) return;
           loadLessonToBoard(lesson);
           closeDashboard();
         });
 
+        card.querySelector(".editLessonBtn").addEventListener("click", (e) => {
+          e.stopPropagation(); openLessonEditor(lesson);
+        });
         card.querySelector(".deleteLessonBtn").addEventListener("click", (e) => {
           e.stopPropagation();
           state.schedule[state.selectedDay] = state.schedule[state.selectedDay].filter(l => l.id !== lesson.id);
+          saveSchedule();
           renderScheduleCards();
         });
 
@@ -1175,8 +1232,11 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
 
       // 2. Sätt lektionstitel & huvudtimer
       timer1TitleInput.value = lesson.subject;
-      state.timer1TotalSec = lesson.durationMin * 60;
-      state.timer1RemainingSec = lesson.durationMin * 60;
+      const duration = durationFromTitle(lesson.subject) || lesson.durationMin;
+      state.timer1TotalSec = duration * 60;
+      state.timer1RemainingSec = duration * 60;
+      activeLessonId = lesson.id;
+      syncTimerFields(1);
       state.timer1Running = false;
       timer1ToggleBtn.textContent = "Starta";
       updateTimer1Circle();
@@ -1197,20 +1257,7 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
       updateSilenceUI();
     }
 
-    addNewLessonCardBtn.addEventListener("click", () => {
-      showAppModal("Ny Lektionsskärm", "Ämne & Tid (t.ex. Matte 10:00-11:00 60m):", (val) => {
-        if (val && val.trim()) {
-          state.schedule[state.selectedDay].push({
-            id: Date.now(),
-            subject: val.trim(),
-            durationMin: 60,
-            classTarget: state.activeClass,
-            checklist: ["1. Startuppgift", "2. Eget arbete", "3. Exit ticket"]
-          });
-          renderScheduleCards();
-        }
-      });
-    });
+    addNewLessonCardBtn.addEventListener("click", () => openLessonEditor());
 
     // --- RÄTTVIS MATEMATISK POÄNG & TOPPLISTA ---
     let showingHsWeek = true;
@@ -1732,6 +1779,48 @@ main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.3
     document.addEventListener('fullscreenchange', () => { document.getElementById('fullscreenBtn').textContent = document.fullscreenElement ? '⛶ Avsluta helskärm' : '⛶ Helskärm'; });
     document.getElementById('boardSensitivitySlider').setAttribute('aria-label', 'Mikrofonens känslighet');
     document.querySelectorAll('button[title]').forEach(button => button.setAttribute('aria-label', button.title));
+    const closeLessonEditor = () => { document.getElementById('lessonEditor').classList.add('hidden'); };
+    document.getElementById('cancelLessonEdit').addEventListener('click', closeLessonEditor);
+    document.getElementById('lessonEditor').addEventListener('keydown', e => { if(e.key === 'Escape') closeLessonEditor(); });
+    ['lessonStart','lessonEnd'].forEach(id => document.getElementById(id).addEventListener('input', () => {
+      const mins = minutesBetween(document.getElementById('lessonStart').value, document.getElementById('lessonEnd').value);
+      if (mins) document.getElementById('lessonDuration').value = mins;
+    }));
+    document.getElementById('lessonForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const get = id => document.getElementById(id);
+      const start = get('lessonStart').value, end = get('lessonEnd').value;
+      const rangeMin = minutesBetween(start,end);
+      if ((start || end) && !rangeMin) { get('lessonError').textContent = 'Fyll i både start och slut. Sluttiden ska vara senare än starttiden.'; return; }
+      const duration = rangeMin || Number(get('lessonDuration').value);
+      const subject = get('lessonSubject').value.trim();
+      if (!subject || !Number.isInteger(duration) || duration < 1 || duration > 1440) { get('lessonError').textContent = 'Ange rubrik och en längd mellan 1 och 1440 minuter.'; return; }
+      const lesson = {id:editingLesson?.id || Date.now(), subject:subject+(start ? ` ${start}–${end}` : ''), durationMin:duration, classTarget:get('lessonClass').value, checklist:get('lessonPoints').value.split('\n').map(x=>x.trim()).filter(Boolean)};
+      if (editingLesson) Object.assign(editingLesson,lesson); else state.schedule[state.selectedDay].push(lesson);
+      if (activeLessonId === lesson.id) {
+        timer1TitleInput.value = lesson.subject;
+        state.activeClass = lesson.classTarget; updateTeacherAndClassUI();
+        state.checklist = lesson.checklist.map((text, index) => ({id: Date.now()+index, text, done:false})); renderChecklist();
+        state.timer1TotalSec = state.timer1RemainingSec = duration*60;
+        state.timer1Running = false; timer1ToggleBtn.textContent = 'Starta';
+        syncTimerFields(1); updateTimer1Circle();
+      }
+      saveSchedule(); renderScheduleCards(); closeLessonEditor();
+    });
+    [1,2].forEach(n => {
+      document.getElementById(`timer${n}SetBtn`).addEventListener('click', () => {
+        const hours = document.getElementById(`timer${n}Hours`), mins = document.getElementById(`timer${n}Minutes`);
+        if (!hours.reportValidity() || !mins.reportValidity()) return;
+        const total = (Number(hours.value)*60+Number(mins.value))*60;
+        if (!Number.isFinite(total) || total < 0) return;
+        state[`timer${n}TotalSec`] = state[`timer${n}RemainingSec`] = total;
+        state[`timer${n}Running`] = false;
+        document.getElementById(`timer${n}ToggleBtn`).textContent = 'Starta';
+        (n===1 ? updateTimer1Circle : updateTimer2Circle)();
+      });
+      document.getElementById(`timer${n}ResetBtn`).addEventListener('click', () => syncTimerFields(n));
+    });
+
     // Startkörning
     lucide.createIcons();
     updateTimer1Circle();
