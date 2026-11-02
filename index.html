@@ -119,7 +119,47 @@
       background: rgba(148, 163, 184, 0.5);
       border-radius: 9999px;
     }
-  </style>
+  
+/* Skogsgläntan — projector layout */
+:root{--ink:#203c32;--pine:#214f3b;--cream:#fffdf3;--gold:#f5c65b}
+body.nature-bg{background:radial-gradient(ellipse at 70% 0%,#35684c 0,transparent 55%),linear-gradient(130deg,#132e27,#214936);color:var(--ink);min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.15;background-image:radial-gradient(#e4efca 1px,transparent 1px);background-size:28px 28px}
+header{max-width:1700px;margin:auto;padding:22px 28px!important;gap:16px;flex-wrap:wrap}
+header h1{font-size:clamp(20px,1.8vw,29px)!important;letter-spacing:.01em!important}
+header p{font-size:12px!important;margin-top:4px}
+button{transition:transform .15s,background .15s!important;touch-action:manipulation}button:hover{transform:translateY(-1px)}button:active{transform:translateY(1px)}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #dd9f20!important;outline-offset:3px}
+header button{min-height:44px}#micToggleBtn{background:#f5ca65;border-color:#ffe6a3;color:#243c2b;font-size:14px;padding:12px 20px;box-shadow:0 4px 0 #a57c2e}
+#topClassBadge{font-size:15px;min-height:28px}#fullscreenBtn{background:#ffffff18;color:#fff;border:1px solid #ffffff55;padding:10px 13px;border-radius:14px;font-weight:700}
+main{max-width:1700px!important;padding:0 28px 24px!important;justify-content:flex-start!important;gap:18px!important}
+.glass-card{background:var(--cream);border:1px solid #ebe9d6;box-shadow:0 6px 0 #102e2745,0 16px 36px #071e2820;backdrop-filter:none;border-radius:25px!important}
+main>.glass-panel-warm{order:2;background:#edf3df;border:1px solid #dce6cf;padding:12px 18px!important;border-radius:18px!important;box-shadow:none}
+main>.glass-panel-warm button{min-height:36px;font-size:13px}main>.glass-panel-warm input{max-width:230px}
+main>.grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.35fr) minmax(240px,.78fr);gap:18px;align-items:stretch}
+#checklistCard{grid-column:1;grid-row:1;padding:24px 20px!important;min-width:0}
+#checklistCard:before{content:"DAGENS ÄVENTYR";font-size:11px;font-weight:800;letter-spacing:.2em;color:#66816b;margin-bottom:16px}
+#checklistCard>div:first-of-type{flex:1}#checklistHeaderTitle{font-size:25px!important;color:#234e39}
+#checklistCard>div:first-of-type>div{flex-wrap:wrap;gap:10px}#checklistCard>div:first-of-type>div>div:first-child{flex-basis:100%}
+#checklistItemsUl{max-height:520px;margin:22px 0}#checklistItemsUl li{border-color:#dee5d0;border-radius:15px;background:#f2f4e8;padding:17px 12px;margin-bottom:12px}#checklistItemsUl li.text-base{font-size:18px}#checklistItemsUl input{min-width:0;width:100%;color:#294333}#checklistItemsUl li>div{flex-shrink:0}#checklistCard>div:last-child{color:#61715c;gap:15px;line-height:1.6}
+#rightSideContainer{display:contents}#rightSideContainer>.grid{grid-column:3;grid-row:1;display:flex;flex-direction:column;gap:14px;min-width:0}#rightSideContainer>.grid>.glass-card{flex:1;padding:13px!important;position:relative;min-height:190px}
+#rightSideContainer>.grid input{font-size:15px}#rightSideContainer>.grid .w-28{width:100px;height:100px;margin:3px}#timer1Display,#timer2Display{font-size:25px}#rightSideContainer .adjustTimerBtn{font-size:12px;min-width:37px;min-height:27px}#timer1ToggleBtn,#timer2ToggleBtn{min-height:31px;font-size:13px}#analogDigitalDisplay{font-size:23px}.clock-hand{transform-origin:50px 50px}
+#bearCard{grid-column:2;grid-row:1;overflow:hidden;isolation:isolate;padding:20px!important;min-height:620px;background:#e6edcd;border-color:#cdd9b4}
+.forest-scene{position:absolute;inset:0;width:100%;height:100%;z-index:-2}.forest-sun{transform-origin:385px 105px;animation:sunshine 9s ease-in-out infinite}.firefly{animation:firefly 6s ease-in-out infinite alternate}.firefly:nth-child(even){animation-delay:-3s}
+#bearCard>.w-full:first-of-type{background:#fffcdfdd;padding:10px 14px;border-radius:17px;border:1px solid #fff8d4;align-items:center}
+#bearCard>.relative{width:100%!important;height:310px!important;flex:1;min-height:250px;margin:0!important}
+#bearSvgWrap{position:absolute;bottom:5px;left:0;width:100%;height:100%;filter:drop-shadow(0 14px 7px #183b2730)}#bearSvgWrap svg{max-height:340px;overflow:visible}
+#zzzContainer{top:13%;right:25%;z-index:3;color:#fffde1;text-shadow:0 2px 2px #315838}#bearSpeechText{bottom:3px;max-width:98%;text-align:center;font-size:16px;line-height:1.45;padding:9px 17px;border:2px solid #fff8d4;color:#214b37;background:#fffef3;box-shadow:0 4px 0 #204a3622;z-index:4;border-radius:16px}
+#bearCard>.max-w-sm{max-width:100%;background:#fffdf3e8;padding:10px 14px;border-radius:13px;margin:15px 0 12px}#bearCard>.max-w-sm>div:first-child{font-size:11px;color:#45613f}#bearCard>.max-w-sm>div:last-child{height:16px}
+#bearCard>.grid{gap:10px}#bearCard>.grid>div{background:#fffdf2;border-color:#e1dfbb;padding:13px 7px}#bearCard>.grid>div:last-child{background:#ffe5a0;border-color:#f6cf71}#bearCard>.grid span:first-child{font-size:11px;color:#4d633e}#currentSilenceTimerDisplay,#sessionRecordTimerDisplay{font-size:clamp(34px,3.5vw,54px);line-height:1.2;font-variant-numeric:tabular-nums;color:#254d36}
+#fairScoreDisplay{color:#28553b;font-size:30px}#silenceFocusPctDisplay{color:#536d43}#teachingStatusOverlay{top:100px;background:#294c67;flex-wrap:wrap;gap:10px}#teachingStatusOverlay span{line-height:1.5}
+#fullDashboardModal{background:#142e25f5}#fullDashboardModal button,#fullDashboardModal input,#fullDashboardModal select{min-height:36px}#fullDashboardModal .text-xs{font-size:14px}#appModal{z-index:60}#modalDesc{font-size:14px;line-height:1.6}#appModal button{min-height:40px}#appModal>div{max-width:460px}
+@keyframes sunshine{50%{opacity:.65;transform:scale(1.06)}}@keyframes firefly{0%{opacity:.15;transform:translateY(0)}100%{opacity:.9;transform:translateY(-13px)}}
+@media(min-width:1100px) and (max-height:820px){header{padding-top:12px!important;padding-bottom:12px!important}#bearCard{min-height:560px}#rightSideContainer>.grid>.glass-card{min-height:170px}#rightSideContainer>.grid .w-28{width:82px;height:82px}#bearCard>.relative{min-height:210px}#checklistItemsUl li{padding:12px}main{gap:12px!important}}
+@media(max-width:1099px){main>.grid{grid-template-columns:minmax(240px,1fr) minmax(320px,1.3fr)}#rightSideContainer>.grid{grid-column:1/-1;grid-row:2;flex-direction:row}#rightSideContainer>.grid>.glass-card{min-width:0}#bearCard{min-height:570px}header h1{font-size:22px!important}}
+@media(max-width:650px){header{padding:16px!important}header>div{flex-wrap:wrap}main{padding:0 12px 18px!important}main>.grid{display:flex;flex-direction:column}#bearCard{order:-1;min-height:570px}#rightSideContainer>.grid{flex-wrap:wrap}#rightSideContainer>.grid>.glass-card{flex:1 1 140px}#checklistItemsUl li.text-base{font-size:16px}main>.glass-panel-warm>div{min-width:0;flex-wrap:wrap}#fullDashboardModal .border-b>div{flex-wrap:wrap}#fullDashboardModal .border-b{align-items:flex-start}header h1{font-size:20px!important}#checklistCard{min-height:390px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+#checklistItemsUl textarea{min-width:0;width:100%;resize:vertical;line-height:1.45;color:#294333;min-height:3em;overflow-wrap:anywhere}#checklistItemsUl li{align-items:center}#checklistItemsUl li>div{cursor:pointer}#bearCard>.w-full:first-of-type{z-index:1}#bearCard>.relative{z-index:1}#secondTimerCard.hidden{display:none!important}
+</style>
 </head>
 <body class="nature-bg min-h-screen text-slate-800 flex flex-col justify-between overflow-x-hidden relative">
 
@@ -171,6 +211,7 @@
         <span>Starta Mikrofon</span>
       </button>
 
+      <button id="fullscreenBtn" title="Visa tavlan i helskärm">⛶ Helskärm</button>
       <!-- Öppna Helskärms-dashboard -->
       <button id="openDashboardBtn" class="px-3 py-2 rounded-2xl bg-white/95 hover:bg-white text-slate-700 shadow-md transition-all border border-white/70 flex items-center gap-1.5 text-xs font-bold" title="Öppna veckoschema, klasser & lektionsskärmar">
         <i data-lucide="layout-grid" class="w-4 h-4 text-emerald-700"></i>
@@ -331,7 +372,7 @@
               <h3 class="font-bold text-sm text-slate-800">Projekt: profilapp-7101f</h3>
             </div>
             <p class="text-xs text-slate-600 leading-relaxed mb-3">
-              Webbläsaren sparar alla lektioner, checklistor och klasskampresultat i det lokala minnet. För att synka topplistan och resultaten live mellan skolans alla klassrum kan du klistra in web-appens API-nyckel här.
+              Det här är originalets förberedda panel för Firebase. Molnsynk är ännu inte implementerad; en API-nyckel ensam ansluter inte appen. Ändringar och resultat finns endast under den öppna sessionen.
             </p>
             <div class="space-y-3">
               <div>
@@ -385,7 +426,7 @@
         <!-- Toggle för extra Time Timer -->
         <button id="toggleSecondTimerBtn" class="px-3 py-1.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 transition-all border border-slate-300">
           <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-          <span id="secondTimerToggleText">+ Extra Timer</span>
+          <span id="secondTimerToggleText">Dölj Extra Timer</span>
         </button>
       </div>
 
@@ -539,6 +580,7 @@
         <!-- RAD 2: DEN SOVANDE BJÖRNEN (UNDER KLOCKORNA) -->
         <div id="bearCard" class="glass-card rounded-3xl p-5 flex flex-col items-center justify-between relative shadow-xl">
           
+          <svg class="forest-scene" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#ecedbc"/><stop offset="1" stop-color="#91b58b"/></linearGradient><g id="pine"><path d="M0 0L-48 100H-31L-68 160H-44L-88 225H88L44 160H68L31 100H48Z"/><path d="M-8 200H8V310H-8Z"/></g></defs><path fill="url(#sky)" d="M0 0H600V800H0Z"/><g class="forest-sun"><circle cx="385" cy="105" r="110" fill="#fff9ce" opacity=".2"/><circle cx="385" cy="105" r="73" fill="#fff9ce" opacity=".3"/><circle cx="385" cy="105" r="43" fill="#fff3b2"/></g><path d="M0 365Q140 220 300 350T600 290V800H0" fill="#9fbd91"/><g fill="#6e9c7a" opacity=".6"><use href="#pine" transform="translate(75 155) scale(.8)"/><use href="#pine" transform="translate(510 170) scale(.9)"/><use href="#pine" transform="translate(390 220) scale(.6)"/><use href="#pine" transform="translate(200 220) scale(.5)"/></g><path d="M0 490Q130 345 330 450T600 430V800H0" fill="#6e9869"/><g fill="#356c51"><use href="#pine" transform="translate(3 125) scale(1.2)"/><use href="#pine" transform="translate(585 190) scale(1.1)"/></g><path d="M0 550Q280 425 600 560V800H0" fill="#466f42"/><ellipse cx="300" cy="516" rx="215" ry="51" fill="#a6b874"/><ellipse cx="300" cy="515" rx="167" ry="32" fill="#c5cb8d"/><g fill="#fff3ad"><circle class="firefly" cx="110" cy="325" r="3"/><circle class="firefly" cx="480" cy="415" r="3"/><circle class="firefly" cx="420" cy="285" r="2"/><circle class="firefly" cx="160" cy="425" r="2"/></g><g transform="translate(65 510)"><path d="M0 0V27M22 5V24" stroke="#fff4c8" stroke-width="8"/><path d="M-17 1Q0-28 17 1Z" fill="#ce744d"/><path d="M9 7Q22-16 35 7Z" fill="#e0a254"/><circle cx="-3" cy="-7" r="3" fill="#fff2ca"/></g><g stroke="#b4c97f" stroke-width="4" fill="none"><path d="M485 530l-10-27m10 27 13-20m-13 20 2-33M125 560l-9-20m9 20 9-23"/></g></svg>
           <!-- Genomgång-banner vid paus -->
           <div id="teachingStatusOverlay" class="absolute top-3 left-4 right-4 bg-indigo-600 text-white rounded-2xl py-2 px-4 flex items-center justify-between shadow-lg hidden z-20">
             <span class="text-xs font-bold flex items-center gap-2">
@@ -764,6 +806,7 @@
     };
 
     // DOM-referenser
+    const micToggleBtn = document.getElementById("micToggleBtn");
     const topClassBadge = document.getElementById("topClassBadge");
     const topTeacherName = document.getElementById("topTeacherName");
     const openDashboardBtn = document.getElementById("openDashboardBtn");
@@ -1244,9 +1287,9 @@
           }">
             ${item.done ? '<i data-lucide="check" class="' + (isLarge ? 'w-4 h-4' : 'w-3 h-3') + ' text-white stroke-[3]"></i>' : ''}
           </div>
-          <input type="text" value="${item.text}" class="flex-1 bg-transparent font-medium focus:outline-none focus:border-b focus:border-emerald-500 cursor-text ${
+          <textarea rows="2" aria-label="Lektionspunkt" class="flex-1 bg-transparent font-medium focus:outline-none focus:border-b focus:border-emerald-500 cursor-text ${
             item.done ? 'line-through text-slate-400' : ''
-          }">
+          }"></textarea>
           <button class="deleteCheckItemBtn text-slate-300 hover:text-rose-500 p-1" data-id="${item.id}">
             <i data-lucide="trash-2" class="${isLarge ? 'w-4 h-4' : 'w-3.5 h-3.5'}"></i>
           </button>
@@ -1258,7 +1301,8 @@
           renderChecklist();
         });
 
-        const input = li.querySelector("input");
+        const input = li.querySelector("textarea");
+        input.value = item.text;
         input.addEventListener("change", (e) => {
           item.text = e.target.value;
         });
@@ -1523,7 +1567,7 @@
       mouthSleeping.classList.add("hidden");
       mouthGasping.classList.remove("hidden");
 
-      bearSpeechText.textContent = "😱 VEM PRATADE?! Björnen vaknade!";
+      bearSpeechText.textContent = "😱 Björnen vaknade! Vi hittar lugnet igen.";
       bearSpeechText.classList.add("text-rose-600");
 
       state.currentSilenceSec = 0;
@@ -1581,7 +1625,7 @@
 
     // Mellanslag för snabbpaus
     window.addEventListener("keydown", (e) => {
-      if (e.code === "Space" && e.target.tagName !== "INPUT") {
+      if (e.code === "Space" && !e.target.closest("input, textarea, select, button, [contenteditable=true]")) {
         e.preventDefault();
         toggleTeacherPause();
       }
@@ -1678,9 +1722,16 @@
     // Spara Firebase API-nyckel
     document.getElementById("saveFirebaseConfigBtn").addEventListener("click", () => {
       const key = document.getElementById("firebaseApiKeyInput").value;
-      showAppModal("Anslutning sparad", key ? "API-nyckel registrerad för profilapp-7101f." : "Lokal lagring aktiv.");
+      showAppModal("Molnsynk är inte ansluten", "Firebase-integrationen behöver färdigställas innan data kan sparas eller delas mellan datorer.");
     });
 
+    document.getElementById('fullscreenBtn').addEventListener('click', async () => {
+      try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }
+      catch { showAppModal('Helskärm', 'Använd webbläsarens helskärmsläge om knappen inte stöds på din enhet.'); }
+    });
+    document.addEventListener('fullscreenchange', () => { document.getElementById('fullscreenBtn').textContent = document.fullscreenElement ? '⛶ Avsluta helskärm' : '⛶ Helskärm'; });
+    document.getElementById('boardSensitivitySlider').setAttribute('aria-label', 'Mikrofonens känslighet');
+    document.querySelectorAll('button[title]').forEach(button => button.setAttribute('aria-label', button.title));
     // Startkörning
     lucide.createIcons();
     updateTimer1Circle();
