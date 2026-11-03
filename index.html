@@ -63,7 +63,7 @@ const uid = () => crypto.randomUUID ? crypto.randomUUID() : 'kk-'+Date.now().toS
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DAYS = ['Måndag','Tisdag','Onsdag','Torsdag','Fredag'];
 const STORE_KEY = 'klasskampen-v3';
-const THRESHOLD_VALS = {1:24,2:17,3:11,4:7,5:3.5};
+const THRESHOLD_VALS = {1:60,2:48,3:36,4:26,5:18};
 const SENSITIVITY_LABELS = {1:'1 · Tolerant',2:'2 · Lugn',3:'3 · Standard',4:'4 · Hög fokus',5:'5 · Mycket känslig'};
 const blankSchedule = () => Object.fromEntries(DAYS.map(d=>[d,[]]));
 const fmtTime = sec => {const s=Math.max(0,Math.floor(sec));return Math.floor(s/60).toString().padStart(2,'0')+':'+(s%60).toString().padStart(2,'0');};
