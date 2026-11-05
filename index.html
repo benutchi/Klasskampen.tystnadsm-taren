@@ -140,10 +140,10 @@ const uid = () => crypto.randomUUID ? crypto.randomUUID() : 'kk-'+Date.now().toS
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DAYS = ['Måndag','Tisdag','Onsdag','Torsdag','Fredag'];
 const STORE_KEY = 'klasskampen-v3';
-const THRESHOLD_VALS = {1:70,2:52,3:38,4:28,5:38};
+const THRESHOLD_VALS = {1:62,2:52,3:38,4:18,5:38};
 let roomBaseline=null,roomCalibration=null;
 try{const saved=JSON.parse(localStorage.getItem('klasskampen-room-calibration'));if(saved&&Number.isFinite(saved.baseline)&&saved.baseline>=0&&saved.baseline<=80)roomBaseline=saved.baseline;}catch{}
-function soundThreshold(level){return Math.min(95,Math.max(THRESHOLD_VALS[level],roomBaseline===null?0:roomBaseline+({1:40,2:24,3:8,4:0,5:8})[level]));}
+function soundThreshold(level){return Math.min(95,Math.max(THRESHOLD_VALS[level],roomBaseline===null?0:roomBaseline+({1:32,2:24,3:8,4:-8,5:8})[level]));}
 function calibrationBaseline(samples){const sorted=samples.filter(Number.isFinite).sort((a,b)=>a-b);return sorted.length<60?null:sorted[Math.floor((sorted.length-1)*.9)];}
 function renderCalibration(){$('calibrationStatus').textContent=roomCalibration?'Lyssnar · arbeta tyst i 5 sekunder':roomBaseline===null?'': 'Kalibrerat på den här datorn';$('calibrateRoomBtn').disabled=Boolean(roomCalibration);$('resetCalibrationBtn').classList.toggle('hidden',roomBaseline===null);}
 function cancelCalibration(){if(!roomCalibration)return;roomCalibration=null;lastAudioTime=null;previousQuiet=false;state.loudSoundStartTime=null;renderCalibration();}
