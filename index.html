@@ -118,6 +118,28 @@ body.classroom-view .check-item:before{display:none}
 #startTestLessonBtn{border-style:dashed;color:var(--green)}
 .championship-board{max-width:100%;margin:22px 0}.championship-board .leader-result strong{font-size:32px}.championship-period-info{font-size:12px;color:var(--muted);padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:#ffffff80}.record-highlight{margin:20px 0}.school-record{display:flex;gap:20px;padding:24px;border-radius:16px;background:#eee6cf;border:1px solid #ded1a7}.school-record>span{font-size:42px}.school-record strong{font-size:36px;font-variant-numeric:tabular-nums}.school-record p{margin:4px 0;font-size:13px}.school-record small{color:#756849}.counted-result{color:#365c4c;font-weight:600;white-space:nowrap}.previous-period{margin-top:25px}.reset-championship{border-bottom:1px solid var(--line);padding-bottom:15px;margin-bottom:18px}.reset-championship summary{cursor:pointer;font-size:13px;font-weight:600}.ceremony-metrics{flex-wrap:wrap;gap:15px 25px;max-width:850px}.ceremony-metrics>div{min-width:100px}.celebration-message{max-width:90%;text-align:center}
 
+/* Rutor på vänstersidan av klassrumstavlan. */
+#lessonContentColumn{display:flex;flex-direction:column;gap:0}
+.board-panel-tabs{display:flex;flex-wrap:wrap;gap:4px;flex:none;margin-bottom:9px;border-bottom:1px solid var(--line)}
+.board-panel-tabs button{flex:1;padding:7px 8px;font-size:12px;border-radius:9px 9px 0 0}
+.board-panel-tabs button[aria-pressed="true"]{background:#34594a;color:#fff;border-color:#34594a}
+#lessonContentColumn #checklistCard,#lessonContentColumn #instructionsCard,#lessonContentColumn #handCard{flex-basis:0;min-height:0;overflow:auto}
+#lessonContentColumn #contentDivider,#lessonContentColumn #handDivider{position:static;transform:none;width:100%;height:13px;flex:none;display:grid;place-items:center;cursor:ns-resize;touch-action:none;margin:0}
+#lessonContentColumn #contentDivider.hidden,#lessonContentColumn #handDivider.hidden{display:none}
+.hand-divider span{height:4px;width:48px;background:#9eafa0;border-radius:8px}
+.hand-panel{padding:14px 16px}
+.hand-heading,.hand-join,.hand-controls,#handRows li{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px}
+.hand-heading h2{font-size:16px;margin:0}
+#handCount{font-size:12px;background:#e7eee4;padding:4px 8px;border-radius:99px}
+.hand-join,.hand-controls{font-size:12px;margin:6px 0}
+.hand-join a{color:inherit;overflow-wrap:anywhere;min-width:0}
+.hand-join strong{font-size:18px;letter-spacing:.12em}
+#handRows{margin:5px 0 0;padding:0;list-style:none}
+#handRows li{padding:4px 0;border-top:1px solid var(--line)}
+#handRows li span{overflow-wrap:anywhere;min-width:0}
+#handRows button,.hand-controls button{padding:4px 8px;font-size:12px}
+.classroom-view #handRows,.classroom-view .hand-controls{display:none}
+
 body.reduce-motion *{animation:none!important;transition:none!important}</style></head>
 <body>
 <!-- Offentlig Firebase-webbkonfiguration. Lägg aldrig ett lösenord eller en privat nyckel här. -->
@@ -135,8 +157,13 @@ body.reduce-motion *{animation:none!important;transition:none!important}</style>
 <nav class="top-nav" aria-label="Lärarverktyg"><button id="openDashboardBtn" class="active"><i data-lucide="calendar"></i> Planering</button><button id="openScoresBtn"><i data-lucide="trophy"></i> Klasskamp</button><button id="openDemoBtn"><i data-lucide="sparkles"></i> Prova avslut</button><button id="openSettingsBtn" aria-label="Inställningar"><i data-lucide="settings"></i></button><button id="fullscreenBtn" aria-label="Helskärm"><i data-lucide="maximize"></i></button></nav></header>
 <div class="context-row"><div class="context-title"><button id="topClassBadge" class="badge" title="Välj klass">6B</button><div><strong id="boardLessonName">Dagens lektion</strong><div class="small"><button id="topTeacherName" class="quiet" style="padding:0;min-height:0;font-size:12px">Benny Gustafsson</button> <span style="margin:0 5px">/</span> <span id="todayDate"></span></div></div></div><div class="row"><span id="lessonStatus">Redo för lektion</span><button id="micToggleBtn" class="primary"><i data-lucide="mic"></i> <span>Starta mikrofon</span></button><button id="startTestLessonBtn" title="Starta en fem minuters provlektion. Inga resultat sparas.">Provläge</button><button id="endLessonBtn" class="danger">Avsluta lektion</button></div></div>
 <main class="board">
-<div id="lessonContentColumn" class="lesson-content-column"><section id="checklistCard" class="panel checklist-panel" aria-label="Lektionens moment"><div class="eyebrow" style="margin-bottom:10px">En sak i taget</div><input id="checklistHeaderTitle" aria-label="Checklistans rubrik" value="Lektionens moment" maxlength="100"><div class="checklist-tools"><span id="checklistProgress" class="small">0 av 0 klara</span><div class="row"><button id="toggleChecklistSizeBtn"><span id="checklistSizeLabel">Stor vy</span></button><button id="addCheckItemBtn" aria-label="Lägg till lektionspunkt">＋</button></div></div><ul id="checklistItemsUl" class="checklist"></ul><div class="checklist-footer"><span>Texten kan redigeras direkt.</span><button id="resetChecklistBtn" class="quiet">Rensa bockar</button></div></section>
-<div id="contentDivider" class="content-divider hidden" role="separator" aria-label="Ändra utrymme mellan checklista och instruktioner" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" tabindex="0" title="Dra för att ändra utrymme. Dubbelklicka för automatisk fördelning."><span></span></div><section id="instructionsCard" class="panel instructions-panel hidden"><h2>Instruktioner</h2><textarea id="boardInstructions" aria-label="Lektionens instruktioner" maxlength="12000" placeholder="Skriv instruktionerna här…"></textarea><div id="instructionsDisplay" class="instructions-display" tabindex="0"></div></section></div><section id="bearCard" class="panel bear-panel" aria-label="Björnen och klassens fokus"><div class="bear-top"><span class="eyebrow">Låt björnen vila</span><span id="soundGuardBadge" class="pill">1 sekunds ljudskydd</span></div><div id="testModeBanner" class="scoring-mode-notice hidden" role="status">PROVLÄGE · inga resultat sparas</div><div id="scoringModeNotice" class="scoring-mode-notice hidden" role="status">Genomgång · inga poäng eller rekord räknas</div><div id="teachingStatusOverlay" class="hidden"><span>Paus.<br><strong>Mätningen är pausad.</strong></span><button id="quickResumeBtn">Återuppta</button></div><div class="bear-stage"><div id="bearYellowGlow"></div><div id="zzzContainer" aria-hidden="true"><span class="z-arc-1">z</span><span class="z-arc-2">z</span><span class="z-arc-3">z</span></div><div id="bearSvgWrap" class="bear-breathing"><svg class="bear-art" viewBox="0 0 300 240" role="img" aria-label="En sömnig brunbjörn"><defs><linearGradient id="bearBodyGrad" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#ac7a57"/><stop offset="1" stop-color="#78513c"/></linearGradient><linearGradient id="bearHeadGrad" x2="0" y2="1"><stop stop-color="#b98a61"/><stop offset="1" stop-color="#986a4c"/></linearGradient></defs><ellipse cx="150" cy="209" rx="110" ry="11" fill="#b5c5ac" opacity=".5"/><path d="M58 178c0-52 46-72 92-72s92 20 92 72c0 33-184 33-184 0" fill="url(#bearBodyGrad)"/><ellipse cx="150" cy="176" rx="52" ry="32" fill="#c3976c" opacity=".7"/><path d="M66 181q84 31 168-1l-5 18q-79 20-159-1z" fill="#647c70"/><path d="M93 192q54 14 114 0" fill="none" stroke="#9db2a0" stroke-width="2"/><g id="bearLeftEar"><circle cx="96" cy="87" r="23" fill="#81583e"/><circle cx="96" cy="87" r="13" fill="#b78c69"/></g><g id="bearRightEar"><circle cx="204" cy="87" r="23" fill="#81583e"/><circle cx="204" cy="87" r="13" fill="#b78c69"/></g><path d="M93 117c0-76 114-76 114 0 0 41-114 43-114 0" fill="url(#bearHeadGrad)"/><path d="M115 82q8-7 16-7" fill="none" stroke="#d5b088" stroke-width="3" stroke-linecap="round"/><ellipse cx="150" cy="137" rx="28" ry="23" fill="#dfc29b"/><ellipse cx="150" cy="128" rx="10" ry="6.5" fill="#3b3029"/><path d="M150 133v8" stroke="#4d3a2f" stroke-width="2.5"/><path id="eyeSleepingLeft" d="M117 112q10 10 20 0" stroke="#49362d" stroke-width="3.5" fill="none" stroke-linecap="round"/><path id="eyeSleepingRight" d="M163 112q10 10 20 0" stroke="#49362d" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle id="eyeWakingLeft" cx="127" cy="113" r="7" fill="#392e29" class="hidden"/><circle id="eyeWakingLeftPupil" cx="129" cy="111" r="2" fill="#fff" class="hidden"/><circle id="eyeWakingRight" cx="173" cy="113" r="7" fill="#392e29" class="hidden"/><circle id="eyeWakingRightPupil" cx="175" cy="111" r="2" fill="#fff" class="hidden"/><path id="mouthSleeping" d="M140 141q10 10 20 0" stroke="#4d3a2f" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse id="mouthGasping" cx="150" cy="146" rx="6" ry="8" fill="#4d3a2f" class="hidden"/><ellipse cx="105" cy="134" rx="9" ry="5" fill="#bd8069" opacity=".5"/><ellipse cx="195" cy="134" rx="9" ry="5" fill="#bd8069" opacity=".5"/><ellipse cx="85" cy="192" rx="24" ry="13" fill="#986d4d"/><ellipse cx="215" cy="192" rx="24" ry="13" fill="#986d4d"/><g fill="none" stroke="#c49a73" stroke-width="1.8" stroke-linecap="round"><path d="M77 190v4m7-3v5m7-5v4M207 190v4m7-3v5m7-5v4"/></g></svg>
+<div id="lessonContentColumn" class="lesson-content-column"><nav id="boardPanelTabs" class="board-panel-tabs" aria-label="Visa rutor på tavlan"><button type="button" aria-controls="checklistCard" aria-pressed="true">Checklista</button><button type="button" aria-controls="instructionsCard" aria-pressed="false">Instruktioner</button><button type="button" aria-controls="handCard" aria-pressed="false">Handuppräckning</button></nav><section id="checklistCard" class="panel checklist-panel" aria-label="Lektionens moment"><div class="eyebrow" style="margin-bottom:10px">En sak i taget</div><input id="checklistHeaderTitle" aria-label="Checklistans rubrik" value="Lektionens moment" maxlength="100"><div class="checklist-tools"><span id="checklistProgress" class="small">0 av 0 klara</span><div class="row"><button id="toggleChecklistSizeBtn"><span id="checklistSizeLabel">Stor vy</span></button><button id="addCheckItemBtn" aria-label="Lägg till lektionspunkt">＋</button></div></div><ul id="checklistItemsUl" class="checklist"></ul><div class="checklist-footer"><span>Texten kan redigeras direkt.</span><button id="resetChecklistBtn" class="quiet">Rensa bockar</button></div></section>
+<div id="contentDivider" class="content-divider hidden" role="separator" aria-label="Ändra utrymme mellan checklista och instruktioner" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" tabindex="0" title="Dra för att ändra utrymme. Dubbelklicka för automatisk fördelning."><span></span></div><section id="instructionsCard" class="panel instructions-panel hidden"><h2>Instruktioner</h2><textarea id="boardInstructions" aria-label="Lektionens instruktioner" maxlength="12000" placeholder="Skriv instruktionerna här…"></textarea><div id="instructionsDisplay" class="instructions-display" tabindex="0"></div></section><div id="handDivider" class="hand-divider hidden" role="separator" aria-label="Ändra utrymme för handuppräckning" aria-orientation="horizontal" aria-valuemin="15" aria-valuemax="75" tabindex="0"><span></span></div><section id="handCard" class="panel hand-panel hidden" aria-label="Handuppräckning">
+<div class="hand-heading"><h2>Handuppräckning</h2><strong id="handCount" aria-live="polite">0 väntar</strong></div>
+<div id="handJoinInfo" class="hand-join hidden"><a id="handStudentAddress" href="elev.html" target="_blank" rel="noopener">elev.html</a><span>Lektionskod <strong id="handCode">—</strong></span></div>
+<div class="hand-controls"><button id="openHandQueue" type="button">Öppna kön</button><button id="closeHandQueue" type="button" class="hidden">Stäng kön</button></div>
+<p id="handStatus" class="small" role="status"></p><ol id="handRows" aria-label="Elever som väntar"></ol>
+</section></div><section id="bearCard" class="panel bear-panel" aria-label="Björnen och klassens fokus"><div class="bear-top"><span class="eyebrow">Låt björnen vila</span><span id="soundGuardBadge" class="pill">1 sekunds ljudskydd</span></div><div id="testModeBanner" class="scoring-mode-notice hidden" role="status">PROVLÄGE · inga resultat sparas</div><div id="scoringModeNotice" class="scoring-mode-notice hidden" role="status">Genomgång · inga poäng eller rekord räknas</div><div id="teachingStatusOverlay" class="hidden"><span>Paus.<br><strong>Mätningen är pausad.</strong></span><button id="quickResumeBtn">Återuppta</button></div><div class="bear-stage"><div id="bearYellowGlow"></div><div id="zzzContainer" aria-hidden="true"><span class="z-arc-1">z</span><span class="z-arc-2">z</span><span class="z-arc-3">z</span></div><div id="bearSvgWrap" class="bear-breathing"><svg class="bear-art" viewBox="0 0 300 240" role="img" aria-label="En sömnig brunbjörn"><defs><linearGradient id="bearBodyGrad" x1="0" y1="0" x2="0.8" y2="1"><stop stop-color="#ac7a57"/><stop offset="1" stop-color="#78513c"/></linearGradient><linearGradient id="bearHeadGrad" x2="0" y2="1"><stop stop-color="#b98a61"/><stop offset="1" stop-color="#986a4c"/></linearGradient></defs><ellipse cx="150" cy="209" rx="110" ry="11" fill="#b5c5ac" opacity=".5"/><path d="M58 178c0-52 46-72 92-72s92 20 92 72c0 33-184 33-184 0" fill="url(#bearBodyGrad)"/><ellipse cx="150" cy="176" rx="52" ry="32" fill="#c3976c" opacity=".7"/><path d="M66 181q84 31 168-1l-5 18q-79 20-159-1z" fill="#647c70"/><path d="M93 192q54 14 114 0" fill="none" stroke="#9db2a0" stroke-width="2"/><g id="bearLeftEar"><circle cx="96" cy="87" r="23" fill="#81583e"/><circle cx="96" cy="87" r="13" fill="#b78c69"/></g><g id="bearRightEar"><circle cx="204" cy="87" r="23" fill="#81583e"/><circle cx="204" cy="87" r="13" fill="#b78c69"/></g><path d="M93 117c0-76 114-76 114 0 0 41-114 43-114 0" fill="url(#bearHeadGrad)"/><path d="M115 82q8-7 16-7" fill="none" stroke="#d5b088" stroke-width="3" stroke-linecap="round"/><ellipse cx="150" cy="137" rx="28" ry="23" fill="#dfc29b"/><ellipse cx="150" cy="128" rx="10" ry="6.5" fill="#3b3029"/><path d="M150 133v8" stroke="#4d3a2f" stroke-width="2.5"/><path id="eyeSleepingLeft" d="M117 112q10 10 20 0" stroke="#49362d" stroke-width="3.5" fill="none" stroke-linecap="round"/><path id="eyeSleepingRight" d="M163 112q10 10 20 0" stroke="#49362d" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle id="eyeWakingLeft" cx="127" cy="113" r="7" fill="#392e29" class="hidden"/><circle id="eyeWakingLeftPupil" cx="129" cy="111" r="2" fill="#fff" class="hidden"/><circle id="eyeWakingRight" cx="173" cy="113" r="7" fill="#392e29" class="hidden"/><circle id="eyeWakingRightPupil" cx="175" cy="111" r="2" fill="#fff" class="hidden"/><path id="mouthSleeping" d="M140 141q10 10 20 0" stroke="#4d3a2f" stroke-width="2.5" fill="none" stroke-linecap="round"/><ellipse id="mouthGasping" cx="150" cy="146" rx="6" ry="8" fill="#4d3a2f" class="hidden"/><ellipse cx="105" cy="134" rx="9" ry="5" fill="#bd8069" opacity=".5"/><ellipse cx="195" cy="134" rx="9" ry="5" fill="#bd8069" opacity=".5"/><ellipse cx="85" cy="192" rx="24" ry="13" fill="#986d4d"/><ellipse cx="215" cy="192" rx="24" ry="13" fill="#986d4d"/><g fill="none" stroke="#c49a73" stroke-width="1.8" stroke-linecap="round"><path d="M77 190v4m7-3v5m7-5v4M207 190v4m7-3v5m7-5v4"/></g></svg>
 </div></div><div id="bearSpeechText" aria-live="polite">En lugn stund börjar här.</div><div><div class="meter-label"><span>Ljudnivå <span style="opacity:.7">/ gränsen markerad</span></span><span id="noiseLevelPctText">0 %</span></div><div class="noise-track"><div id="noiseVolumeBar" class="noise-fill"></div><div id="noiseThreshold"></div></div></div><div class="metrics"><div><span class="metric-label">Obruten tystnad</span><span id="currentSilenceTimerDisplay" class="metric-value">00:00</span></div><div><span class="metric-label">Lektionsrekord</span><span id="sessionRecordTimerDisplay" class="metric-value">00:00</span></div></div><div class="focus-strip"><span>Fokuspoäng <strong id="fairScoreDisplay">0,0 p</strong></span><span id="silenceFocusPctDisplay">Ingen mättid ännu</span></div></section>
 <div id="rightSideContainer" class="timers-column"><section id="mainTimerCard" class="panel timer-panel " aria-label="Timer 1"><input id="timer1TitleInput" class="timer-title" aria-label="Timer 1 rubrik" value="Lektionstid" maxlength="120"><div class="timer-face"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" fill="none" stroke="#edece7" stroke-width="5"/><circle id="timer1Circle" class="pie-progress" cx="50" cy="50" r="42" fill="none" stroke="#bd6653" stroke-width="5" stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"/></svg><span id="timer1Display">00:00</span></div><div id="timer1ScheduleHint" class="timer-schedule-hint"></div><div class="timer-edit"><label>h <input id="timer1Hours" aria-label="Timer 1 timmar" type="number" min="0" max="24" step="1" value="0"></label><label>min <input id="timer1Minutes" aria-label="Timer 1 minuter" type="number" min="0" max="59" step="1" value="0"></label><button id="timer1SetBtn">Ställ in</button></div><div class="quick-timer"><button class="adjustTimerBtn" data-timer="1" data-delta="-5">−5 min</button><button class="adjustTimerBtn" data-timer="1" data-delta="1">+1 min</button><button class="adjustTimerBtn" data-timer="1" data-delta="5">+5 min</button></div><div class="timer-controls"><button id="timer1ToggleBtn">Starta</button><button id="timer1ResetBtn" aria-label="Nollställ timer 1">Nollställ</button></div></section><section id="secondTimerCard" class="panel timer-panel secondary" aria-label="Timer 2"><input id="timer2TitleInput" class="timer-title" aria-label="Timer 2 rubrik" value="Eget arbete" maxlength="120"><div class="timer-face"><svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="42" fill="none" stroke="#edece7" stroke-width="5"/><circle id="timer2Circle" class="pie-progress" cx="50" cy="50" r="42" fill="none" stroke="#5c7787" stroke-width="5" stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"/></svg><span id="timer2Display">00:00</span></div><div id="timer2ScheduleHint" class="timer-schedule-hint"></div><div class="timer-edit"><label>h <input id="timer2Hours" aria-label="Timer 2 timmar" type="number" min="0" max="24" step="1" value="0"></label><label>min <input id="timer2Minutes" aria-label="Timer 2 minuter" type="number" min="0" max="59" step="1" value="0"></label><button id="timer2SetBtn">Ställ in</button></div><div class="quick-timer"><button class="adjustTimerBtn" data-timer="2" data-delta="-5">−5 min</button><button class="adjustTimerBtn" data-timer="2" data-delta="1">+1 min</button><button class="adjustTimerBtn" data-timer="2" data-delta="5">+5 min</button></div><div class="timer-controls"><button id="timer2ToggleBtn">Starta</button><button id="timer2ResetBtn" aria-label="Nollställ timer 2">Nollställ</button></div></section><section class="panel clock-panel" aria-label="Klassrumsklocka"><svg class="analog" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="#cad1c6" stroke-width="2"/><g stroke="#82917f" stroke-width="2"><path d="M50 7v5M50 88v5M7 50h5M88 50h5"/></g><line id="analogHourHand" x1="50" y1="50" x2="50" y2="27" stroke="#34493a" stroke-width="4" stroke-linecap="round" class="clock-hand"/><line id="analogMinuteHand" x1="50" y1="50" x2="50" y2="16" stroke="#34493a" stroke-width="2.5" stroke-linecap="round" class="clock-hand"/><line id="analogSecondHand" x1="50" y1="53" x2="50" y2="12" stroke="#b96a56" stroke-width="1.2" class="clock-hand"/><circle cx="50" cy="50" r="3" fill="#b96a56"/></svg><div><div class="eyebrow">Just nu</div><div id="analogDigitalDisplay">00:00</div></div></section></div>
 </main><div class="board-toolbar"><div class="row"><div class="continuous-sound-control"><div class="sound-ruler" aria-hidden="true"><span>Knäpptyst</span><span>Lugnt arbete</span><span>Grupparbete</span><span>Genomgång</span></div><input id="boardSensitivitySlider" type="range" min="1" max="70" step="0.1" value="38" aria-label="Ljudgräns från knäpptyst till genomgång" aria-describedby="soundRangeHelp"><div class="sound-control-caption"><output id="boardSensitivityBadge">Lugnt arbete</output><span id="soundRangeHelp">Genomgång 50–70 · inga poäng</span></div></div><button id="calibrateRoomBtn" title="Starta mikrofonen och låt klassen arbeta tyst under fem sekunder">Kalibrera rummet</button><button id="resetCalibrationBtn" class="quiet hidden">Återställ</button><span id="calibrationStatus" class="small" role="status"></span></div><div class="row wrap"><button id="boardTeachPauseBtn" title="Pausa eller återuppta ljudmätningen"><i data-lucide="pause"></i> Paus <span class="small">␣</span></button><button id="boardUndoWakeBtn" disabled><i data-lucide="undo-2"></i> Ångra väckning</button><button id="toggleSecondTimerBtn"><span id="secondTimerToggleText">Dölj extra timer</span></button></div></div><footer class="board-footer"><span id="storageStatus"><span class="status-dot"></span>Sparas på den här datorn</span><span>Fokus under lektionen. Firande efteråt.</span></footer>
@@ -240,13 +267,13 @@ function automaticContentSplit(checklist,instructions,width=400,checklistFont=26
  return Math.max(15,Math.min(85,Math.round(100*checkHeight/(checkHeight+instructionHeight))));
 }
 function displayedContentSplit(){const layout=lessonLayout(state),width=$('lessonContentColumn').getBoundingClientRect?.().width||400;return layout.contentSplit<0?automaticContentSplit(state.checklist,layout.instructions,width,layout.checklistFont,layout.instructionsFont):layout.contentSplit;}
-function renderLessonContent(){const layout=lessonLayout(state),split=displayedContentSplit(),column=$('lessonContentColumn');column.classList.toggle('short-checklist',split>0&&split<=30);column.style.setProperty('--checklist-share',split+'fr');column.style.setProperty('--instructions-share',(100-split)+'fr');column.style.setProperty('--split-percent',split+'%');column.style.setProperty('--checklist-font',layout.checklistFont+'px');column.style.setProperty('--instructions-font',layout.instructionsFont+'px');$('checklistCard').classList.toggle('hidden',split===0);$('instructionsCard').classList.toggle('hidden',split===100);if($('boardInstructions').value!==layout.instructions)$('boardInstructions').value=layout.instructions;$('instructionsDisplay').textContent=layout.instructions;const divider=$('contentDivider');divider.classList.toggle('hidden',!layout.instructions.trim()||!state.checklist.some(item=>item.text.trim()));divider.setAttribute('aria-valuenow',String(split));divider.setAttribute('aria-valuetext',split+' procent checklista, '+(100-split)+' procent instruktioner');}
+function renderLessonContent(){const layout=lessonLayout(state),split=displayedContentSplit(),column=$('lessonContentColumn');column.classList.toggle('short-checklist',split>0&&split<=30);column.style.setProperty('--checklist-share',split+'fr');column.style.setProperty('--instructions-share',(100-split)+'fr');column.style.setProperty('--split-percent',split+'%');column.style.setProperty('--checklist-font',layout.checklistFont+'px');column.style.setProperty('--instructions-font',layout.instructionsFont+'px');renderClassroomPanels(split);if($('boardInstructions').value!==layout.instructions)$('boardInstructions').value=layout.instructions;$('instructionsDisplay').textContent=layout.instructions;const divider=$('contentDivider');divider.setAttribute('aria-valuenow',String(split));divider.setAttribute('aria-valuetext',split+' procent checklista, '+(100-split)+' procent instruktioner');}
 $('boardInstructions').oninput=()=>{state.instructions=$('boardInstructions').value;state.contentSplit=-1;renderLessonContent();deferSave();};
 let contentDrag=null;
 function setContentSplit(value){state.contentSplit=Math.max(0,Math.min(100,Math.round(value)));renderLessonContent();}
 function finishContentDrag(){if(contentDrag===null)return;contentDrag=null;document.body.classList.remove('resizing-content');document.querySelectorAll('#checklistItemsUl textarea').forEach(fitTextarea);saveProfile();}
 $('contentDivider').onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();contentDrag=e.pointerId;$('contentDivider').setPointerCapture?.(e.pointerId);document.body.classList.add('resizing-content');};
-$('contentDivider').onpointermove=e=>{if(contentDrag!==e.pointerId)return;const rect=$('lessonContentColumn').getBoundingClientRect();setContentSplit((e.clientY-rect.top)/rect.height*100);};
+$('contentDivider').onpointermove=e=>{if(contentDrag!==e.pointerId)return;const top=$('checklistCard').getBoundingClientRect().top;const bottom=$('instructionsCard').getBoundingClientRect().bottom;setContentSplit((e.clientY-top)/Math.max(1,bottom-top)*100);};
 $('contentDivider').onpointerup=finishContentDrag;$('contentDivider').onpointercancel=finishContentDrag;$('contentDivider').onlostpointercapture=finishContentDrag;
 $('contentDivider').ondblclick=()=>{state.contentSplit=-1;renderLessonContent();saveProfile();};
 $('contentDivider').onkeydown=e=>{const changes={ArrowUp:-5,ArrowDown:5};if(e.key in changes){e.preventDefault();setContentSplit(displayedContentSplit()+changes[e.key]);saveProfile();}else if(e.key==='Home'||e.key==='End'){e.preventDefault();setContentSplit(e.key==='Home'?0:100);saveProfile();}else if(e.key==='Enter'){e.preventDefault();$('contentDivider').ondblclick();}};
@@ -303,7 +330,7 @@ setInterval(tickTimers,200);
 // Mätning: aktiv tid även över ljudgränsen, men lärarpauser räknas inte.
 // Ett övertramp måste vara sammanhängande i 1000 ms som standard (valbart 2000 ms) för att väcka björnen.
 function startSession(isTest=false){clearWakeUndo();const occurrence=isTest?null:scheduledOccurrence();session={id:occurrence?.id||uid(),occurrenceId:occurrence?.id||'',lessonId:occurrence?.lessonId||'',scheduledStart:occurrence?.start||0,scheduledEnd:occurrence?.end||0,isTest,phase:'active',startedAt:Date.now(),teacherId:teacher().id,teacherName:teacher().name,classId:activeClass().id,className:activeClass().name,subject:$('timer1TitleInput').value||'Dagens lektion',sensitivitySeconds:{},wakeCount:0};state.currentSilenceSec=state.sessionRecordSec=state.totalActiveSec=state.totalSilenceAccumulatedSec=0;state.lastWokenScore=0;updateSilenceUI();renderStatus();saveDraft();writeLocal();}
-function resetSession(){clearWakeUndo();stopMic();state.scheduleTiming=null;updateScheduleHint();session=null;state.currentSilenceSec=state.sessionRecordSec=state.totalActiveSec=state.totalSilenceAccumulatedSec=0;state.lastWokenScore=0;state.isTeaching=false;resetBear();dbData.draft=null;updateSilenceUI();renderStatus();}
+function resetSession(){void closeHandQueue();panelChoices.clear();clearWakeUndo();stopMic();state.scheduleTiming=null;updateScheduleHint();session=null;state.currentSilenceSec=state.sessionRecordSec=state.totalActiveSec=state.totalSilenceAccumulatedSec=0;state.lastWokenScore=0;state.isTeaching=false;resetBear();dbData.draft=null;updateSilenceUI();renderStatus();}
 function resetBear(){clearTimeout(wakeTimeout);wakeTimeout=0;state.isCooldown=false;state.loudSoundStartTime=null;$('alarmFlash').style.opacity=0;$('bearYellowGlow').style.opacity=0;$('bearSvgWrap').classList.remove('bear-startled');$('bearSvgWrap').classList.add('bear-breathing');$('zzzContainer').classList.remove('hidden');for(const id of ['eyeSleepingLeft','eyeSleepingRight','mouthSleeping'])$(id).classList.remove('hidden');for(const id of ['eyeWakingLeft','eyeWakingLeftPupil','eyeWakingRight','eyeWakingRightPupil','mouthGasping'])$(id).classList.add('hidden');$('bearLeftEar').classList.remove('ear-twitch-l');$('bearRightEar').classList.remove('ear-twitch-r');$('bearSpeechText').classList.remove('text-rose-600');}
 function setMicButton(){$('micToggleBtn').innerHTML=state.micActive?'<span>■</span> Pausa mikrofon':'<i data-lucide="mic"></i> <span>'+((session?.phase==='ended')?'Ny mätning':'Starta mikrofon')+'</span>';$('micToggleBtn').disabled=micBusy;renderIcons();renderStatus();}
 async function initMic(){if(micBusy||state.micActive)return;if(!session?.isTest&&existingScheduledResult()){toast('Det här schemalagda passet har redan ett sparat resultat. Det räknas bara en gång.');return;}if(session?.phase==='ended'){state.scheduleTiming=null;updateScheduleHint();}if(state.scheduleTiming&&Date.now()>=state.scheduleTiming.end){toast('Schematiden har redan passerat. Välj ett annat pass eller ställ en egen timer.');return;}if($('ceremonyDialog').open){toast('Stäng ceremonin innan du startar mätningen.');return;}if(cloudConnectionEnabled&&cloudConfigPresent()&&!cloudReady){toast('Logga in på lärarkontot först.');return;}micBusy=true;const ticket=++micRequest;setMicButton();try{if(!navigator.mediaDevices?.getUserMedia)throw new Error('unsupported');const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});if(ticket!==micRequest){stream.getTracks().forEach(t=>t.stop());return;}const Ctx=window.AudioContext||window.webkitAudioContext;const ctx=new Ctx();try{await ctx.resume();const source=ctx.createMediaStreamSource(stream);analyserNode=ctx.createAnalyser();analyserNode.fftSize=256;source.connect(analyserNode);freqData=new Uint8Array(analyserNode.frequencyBinCount);}catch(error){stream.getTracks().forEach(t=>t.stop());await ctx.close();throw error;}micStream=stream;audioCtx=ctx;if(!session||session.phase==='ended'){resetBear();startSession();}state.micActive=true;state.loudSoundStartTime=null;lastAudioTime=null;previousQuiet=false;stream.getAudioTracks().forEach(track=>track.onended=()=>{if(state.micActive){stopMic();toast('Mikrofonen kopplades bort. Tiderna är pausade.');}});audioFrame=requestAnimationFrame(audioLoop);$('bearSpeechText').textContent=state.isTeaching?'Mätningen är pausad.':'Björnen sover. Fortsätt så.';}catch(error){const message=error.name==='NotAllowedError'?'Tillåt mikrofonen i webbläsarens webbplatsinställningar.':error.name==='NotFoundError'?'Ingen mikrofon hittades på datorn.':'Mikrofonen kunde inte startas. Använd appen via HTTPS eller localhost och kontrollera mikrofonen.';toast(message);}finally{micBusy=false;setMicButton();}}
@@ -324,7 +351,7 @@ $('soundGuardSelect').onchange=e=>{state.soundGuardMs=+e.target.value;state.loud
 $('boardSensitivitySlider').oninput=e=>{const limit=Number(e.target.value);if(!Number.isFinite(limit)||limit<1||limit>70)return;state.noiseLimit=limit;state.sensitivity=soundModeForLimit(limit);resetBear();clearWakeUndo();state.loudSoundStartTime=null;previousQuiet=false;lastAudioTime=null;saveDeviceSoundLimit();renderControls();saveProfile();};
 document.addEventListener('visibilitychange',()=>{lastAudioTime=null;previousQuiet=false;state.loudSoundStartTime=null;});
 // Avslut låser en sessions-ID en gång. Ceremonin läser bara den färdiga kopian.
-async function finishLesson(){if(!session||session.phase==='ended'||finishPending)return;finishPending=true;renderStatus();const confirmed=await ask(session.isTest?'Avsluta provlektionen?':'Avsluta lektionen?',session.isTest?'Mätningen stoppas och resultatet visas som ett prov. Inget sparas på poängtavlan.':'Mätningen och båda timers stoppas. Resultatet låses och sparas en gång.',{confirm:'Avsluta och visa resultat'});if(!confirmed){finishPending=false;renderStatus();return;}session.phase='ended';clearWakeUndo();stopMic();for(const n of [1,2]){if(state[`timer${n}Running`])state[`timer${n}RemainingSec`]=Math.max(0,(timerDeadlines[n]-Date.now())/1000);state[`timer${n}Running`]=false;$(`timer${n}ToggleBtn`).textContent='Starta';updateTimerCircle(n);syncTimerFields(n);}state.isTeaching=false;state.lastWokenScore=0;const a=state.totalActiveSec,s=Math.min(a,state.totalSilenceAccumulatedSec);const result={id:session.id,teacherId:session.teacherId,teacherName:session.teacherName,classId:session.classId,className:session.className,subject:session.subject,startedAt:session.startedAt,endedAt:Date.now(),activeSec:a,silenceSec:s,unbrokenSec:Math.min(s,state.sessionRecordSec),sensitivitySeconds:copy(session.sensitivitySeconds),wakeCount:session.wakeCount,occurrenceId:session.occurrenceId||'',lessonId:session.lessonId||'',scheduledStart:session.scheduledStart||0,scheduledEnd:session.scheduledEnd||0,cloudSaved:false};Object.assign(result,pointFields(result));let saved=false;if(!session.isTest&&a>=1&&!dbData.records.some(r=>r.id===result.id)){dbData.records.push(result);saved=true;}dbData.draft=null;saveProfile();finishPending=false;renderStatus();setMicButton();$('bearSpeechText').textContent='Lektionen är avslutad. Tack för idag.';renderHighscoreTable();scheduleSync();if(dbData.settings.ceremony)showCeremony(result,Boolean(session.isTest));else toast(session.isTest?'Provlektionen är avslutad. Inga resultat sparades.':saved?'Lektionen är avslutad och resultatet sparat.':'Ingen aktiv mättid – inget resultat har sparats.');}
+async function finishLesson(){if(!session||session.phase==='ended'||finishPending)return;finishPending=true;renderStatus();const confirmed=await ask(session.isTest?'Avsluta provlektionen?':'Avsluta lektionen?',session.isTest?'Mätningen stoppas och resultatet visas som ett prov. Inget sparas på poängtavlan.':'Mätningen och båda timers stoppas. Resultatet låses och sparas en gång.',{confirm:'Avsluta och visa resultat'});if(!confirmed){finishPending=false;renderStatus();return;}session.phase='ended';void closeHandQueue();clearWakeUndo();stopMic();for(const n of [1,2]){if(state[`timer${n}Running`])state[`timer${n}RemainingSec`]=Math.max(0,(timerDeadlines[n]-Date.now())/1000);state[`timer${n}Running`]=false;$(`timer${n}ToggleBtn`).textContent='Starta';updateTimerCircle(n);syncTimerFields(n);}state.isTeaching=false;state.lastWokenScore=0;const a=state.totalActiveSec,s=Math.min(a,state.totalSilenceAccumulatedSec);const result={id:session.id,teacherId:session.teacherId,teacherName:session.teacherName,classId:session.classId,className:session.className,subject:session.subject,startedAt:session.startedAt,endedAt:Date.now(),activeSec:a,silenceSec:s,unbrokenSec:Math.min(s,state.sessionRecordSec),sensitivitySeconds:copy(session.sensitivitySeconds),wakeCount:session.wakeCount,occurrenceId:session.occurrenceId||'',lessonId:session.lessonId||'',scheduledStart:session.scheduledStart||0,scheduledEnd:session.scheduledEnd||0,cloudSaved:false};Object.assign(result,pointFields(result));let saved=false;if(!session.isTest&&a>=1&&!dbData.records.some(r=>r.id===result.id)){dbData.records.push(result);saved=true;}dbData.draft=null;saveProfile();finishPending=false;renderStatus();setMicButton();$('bearSpeechText').textContent='Lektionen är avslutad. Tack för idag.';renderHighscoreTable();scheduleSync();if(dbData.settings.ceremony)showCeremony(result,Boolean(session.isTest));else toast(session.isTest?'Provlektionen är avslutad. Inga resultat sparades.':saved?'Lektionen är avslutad och resultatet sparat.':'Ingen aktiv mättid – inget resultat har sparats.');}
 $('endLessonBtn').onclick=finishLesson;
 function weekStart(now=Date.now()){const d=new Date(now);const dateParts=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Stockholm',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);const parts=Object.fromEntries(dateParts.map(x=>[x.type,x.value]));const utc=new Date(Date.UTC(+parts.year,+parts.month-1,+parts.day));const delta=(utc.getUTCDay()+6)%7;utc.setUTCDate(utc.getUTCDate()-delta);return utc.toISOString().slice(0,10);}
 function localDateKey(ts){return new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Stockholm',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(ts));}
@@ -376,10 +403,10 @@ const cloudConnectionEnabled=$('firebaseConfig').dataset.enabled!=='false';
 function cloudConfigPresent(){return Boolean(firebaseConfig.apiKey&&firebaseConfig.authDomain&&firebaseConfig.projectId&&firebaseConfig.appId);}
 function cloudText(text,error=''){$('cloudStatus').textContent=text;$('cloudError').textContent=error;$('gateError').textContent=error;renderStorageStatus();}
 function cloudErrorMessage(error){const code=error.code||'';return /invalid-credential|wrong-password|user-not-found/.test(code)?'Inloggningen misslyckades. Kontrollera e-post och lösenord.':/permission-denied|unauthorized/.test(code)?'Kontot saknar behörighet. Kontrollera lärarkontot, staff-posten och säkerhetsreglerna i Firebase.':/network|unavailable/.test(code)?'Anslutningen fungerar inte just nu. Ändringarna finns kvar lokalt för ett nytt försök.':/conflict/.test(code)?'Planeringen har ändrats på en annan dator. Välj vilken version du vill behålla.':'Firebase kunde inte anslutas. Kontrollera konfiguration, aktiverad e-postinloggning och säkerhetsregler.';}
-async function setupCloud(){if(!cloudConnectionEnabled){if(cloudConfigPresent())cloudText('Firebase är förberett · lokalt läge tills inloggning och säkerhetsregler är klara.');return;}if(!cloudConfigPresent())return;cloudText('Ansluter till Firebase…');try{const [appSDK,authSDK,fsSDK]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);const app=appSDK.initializeApp(firebaseConfig);cloud={app,auth:authSDK.getAuth(app),db:fsSDK.getFirestore(app),authSDK,fsSDK};authSDK.onAuthStateChanged(cloud.auth,async user=>{cloudSubs.forEach(fn=>fn());cloudSubs=[];cloudReady=false;cloudUser=user;$('cloudUploadBtn').disabled=true;$('cloudRetryBtn').disabled=true;if(!user){cloudText('Inte inloggad · skolans data är låsta.');$('cloudLogoutBtn').classList.add('hidden');if(!$('cloudLoginGate').open)$('cloudLoginGate').showModal();return;}try{const permission=await fsSDK.getDoc(fsSDK.doc(cloud.db,'staff',user.uid));if(!permission.exists()||permission.data().enabled!==true)throw Object.assign(Error('Unauthorized'),{code:'unauthorized'});cloudReady=true;if($('cloudLoginGate').open)$('cloudLoginGate').close();$('cloudLogoutBtn').classList.remove('hidden');$('cloudUploadBtn').disabled=false;$('cloudRetryBtn').disabled=false;cloudText('Inloggad · skolans gemensamma lärarkonto');listenCloud();scheduleSync();}catch(error){cloudText('Inloggad, men inte godkänd för skolans data.',cloudErrorMessage(error));if(!$('cloudLoginGate').open)$('cloudLoginGate').showModal();}});}catch(error){cloudText('Firebase är inte anslutet.',cloudErrorMessage(error));toast('Appen fungerar lokalt. Firebase kunde inte anslutas.');}}
+async function setupCloud(){if(!cloudConnectionEnabled){if(cloudConfigPresent())cloudText('Firebase är förberett · lokalt läge tills inloggning och säkerhetsregler är klara.');return;}if(!cloudConfigPresent())return;cloudText('Ansluter till Firebase…');try{const [appSDK,authSDK,fsSDK]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);const app=appSDK.initializeApp(firebaseConfig);cloud={app,auth:authSDK.getAuth(app),db:fsSDK.getFirestore(app),authSDK,fsSDK};authSDK.onAuthStateChanged(cloud.auth,async user=>{cloudSubs.forEach(fn=>fn());cloudSubs=[];cloudReady=false;if(handRoom)clearHandRoom();cloudUser=user;$('cloudUploadBtn').disabled=true;$('cloudRetryBtn').disabled=true;if(!user){cloudText('Inte inloggad · skolans data är låsta.');$('cloudLogoutBtn').classList.add('hidden');if(!$('cloudLoginGate').open)$('cloudLoginGate').showModal();return;}try{const permission=await fsSDK.getDoc(fsSDK.doc(cloud.db,'staff',user.uid));if(!permission.exists()||permission.data().enabled!==true)throw Object.assign(Error('Unauthorized'),{code:'unauthorized'});cloudReady=true;if($('cloudLoginGate').open)$('cloudLoginGate').close();$('cloudLogoutBtn').classList.remove('hidden');$('cloudUploadBtn').disabled=false;$('cloudRetryBtn').disabled=false;cloudText('Inloggad · skolans gemensamma lärarkonto');listenCloud();void resumeHandQueue();scheduleSync();}catch(error){cloudText('Inloggad, men inte godkänd för skolans data.',cloudErrorMessage(error));if(!$('cloudLoginGate').open)$('cloudLoginGate').showModal();}});}catch(error){cloudText('Firebase är inte anslutet.',cloudErrorMessage(error));toast('Appen fungerar lokalt. Firebase kunde inte anslutas.');}}
 async function loginCloud(email,password){if(!cloudConnectionEnabled){toast('Firebase är förberett. Vi aktiverar anslutningen när lärarkontot och säkerhetsreglerna är klara.');return;}if(!cloud){if(!cloudConfigPresent()){toast('Lägg först in webbappens Firebase-konfiguration.');return;}await setupCloud();if(!cloud)return;}try{$('cloudError').textContent=$('gateError').textContent='';await cloud.authSDK.signInWithEmailAndPassword(cloud.auth,email,password);}catch(error){cloudText('Inloggningen misslyckades.',cloudErrorMessage(error));}finally{$('cloudPassword').value='';$('gatePassword').value='';}}
 $('cloudLoginBtn').onclick=()=>loginCloud($('cloudEmail').value.trim(),$('cloudPassword').value);$('gateLoginForm').onsubmit=e=>{e.preventDefault();loginCloud($('gateEmail').value.trim(),$('gatePassword').value);};$('cloudLoginGate').addEventListener('cancel',e=>e.preventDefault());
-$('cloudLogoutBtn').onclick=async()=>{if(hasUnfinished()){toast('Avsluta lektionen innan du loggar ut.');return;}if(cloudBusy){toast('Vänta tills synkningen är klar.');return;}if(!await ask('Logga ut lärarkontot?','Skolans data blir låsta på den här datorn. Osynkade ändringar finns kvar lokalt.',{confirm:'Logga ut'}))return;stopMic();await cloud.authSDK.signOut(cloud.auth);};
+$('cloudLogoutBtn').onclick=async()=>{if(hasUnfinished()){toast('Avsluta lektionen innan du loggar ut.');return;}if(cloudBusy){toast('Vänta tills synkningen är klar.');return;}if(!await ask('Logga ut lärarkontot?','Skolans data blir låsta på den här datorn. Osynkade ändringar finns kvar lokalt.',{confirm:'Logga ut'}))return;if(!await closeHandQueue()){toast('Stäng handuppräckningen innan du loggar ut.');return;}stopMic();await cloud.authSDK.signOut(cloud.auth);};
 $('saveFirebaseConfigBtn').onclick=async()=>{try{const config=JSON.parse($('firebaseApiKeyInput').value);if(!['apiKey','authDomain','projectId','appId'].every(k=>typeof config[k]==='string'&&config[k].trim()))throw Error('Konfigurationen behöver apiKey, authDomain, projectId och appId.');if(Object.keys(config).some(k=>/private|password|secret|credential/i.test(k)))throw Error('Konfigurationen får inte innehålla lösenord eller privata nycklar.');if(hasUnfinished())throw Error('Avsluta lektionen först.');if(!await ask('Använd Firebase-konfigurationen?',(cloudConnectionEnabled?'Appen kommer att kontakta projektet ':'Konfigurationen förbereds för projektet ')+config.projectId+'. Gemensam lagring kräver godkänd lärarinloggning och publicerade säkerhetsregler.',{confirm:cloudConnectionEnabled?'Spara och anslut':'Spara konfiguration'}))return;localStorage.setItem('klasskampen-firebase-config',JSON.stringify(config));toast(cloudConnectionEnabled?'Konfigurationen är sparad för den här webbläsaren. Appen laddas om.':'Konfigurationen är sparad. Molnet väntar på aktivering.');location.reload();}catch(error){$('cloudError').textContent=error.message;}};
 function cloudCollection(kind){return kind==='profiles'?'plans':kind;}
 function cloudRef(kind,id){return cloud.fsSDK.doc(cloud.db,'schools','klasskampen',cloudCollection(kind),id);}
@@ -396,7 +423,7 @@ function scheduleSync(){clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncClo
 function recordPayload(r){const keys=['id','teacherId','teacherName','classId','className','subject','startedAt','endedAt','activeSec','silenceSec','unbrokenSec','sensitivitySeconds','wakeCount','pointsVersion','focusPoints','streakBonus','totalPoints','streakFactor','occurrenceId','lessonId','scheduledStart','scheduledEnd'];return Object.fromEntries(keys.filter(k=>r[k]!==undefined&&r[k]!==null).map(k=>[k,copy(r[k])]));}
 async function syncCloud(){if(!cloudReady||cloudBusy||!navigator.onLine)return;cloudBusy=true;const {runTransaction}=cloud.fsSDK;try{for(const kind of ['teachers','classes','profiles']){for(const id of [...dbData.pending[kind]]){if(conflicts.has(kind+id))continue;const version=dirtyVersions.get(kind+id)||0;const base=dbData.revisions[kind+id]||0;const value=kind==='profiles'?dbData.profiles[id]:dbData[kind].find(x=>x.id===id);if(!value)continue;const immutable=copy(value);let newRevision=0;try{await runTransaction(cloud.db,async tx=>{const ref=cloudRef(kind,id),old=await tx.get(ref);if(old.exists()&&(old.data().revision||0)!==base){conflicts.set(kind+id,{kind,id,raw:old.data()});throw Object.assign(Error('conflict'),{code:'conflict'});}newRevision=base+1;const payload=kind==='profiles'?{teacherId:id,data:immutable,revision:newRevision,updatedAt:Date.now()}:{id,name:immutable.name,archived:immutable.archived,revision:newRevision,updatedAt:Date.now()};tx.set(ref,payload);});dbData.revisions[kind+id]=newRevision;const pendingConflict=conflicts.get(kind+id);if(pendingConflict?.raw.revision===newRevision)conflicts.delete(kind+id);if(version===(dirtyVersions.get(kind+id)||0))dbData.pending[kind]=dbData.pending[kind].filter(x=>x!==id);}catch(error){if(error.code!=='conflict')throw error;}}}
 for(const record of dbData.records.filter(r=>!r.cloudSaved)){const payload=recordPayload(record);let canonical=null;await runTransaction(cloud.db,async tx=>{const ref=cloudRef('sessions',record.id),existing=await tx.get(ref);if(existing.exists()){const old=existing.data();if(payload.occurrenceId&&old.occurrenceId===payload.occurrenceId){canonical=old;return;}if(Object.keys(payload).some(k=>JSON.stringify(old[k])!==JSON.stringify(payload[k])))throw Object.assign(Error('duplicate-id'),{code:'duplicate-id'});return;}tx.set(ref,payload);});if(canonical){Object.assign(record,canonical);renderHighscoreTable();}record.cloudSaved=true;}writeLocal();cloudText(conflicts.size?'Välj version för poster som ändrats på flera datorer.':'Synkningen är klar.');renderConflicts();}catch(error){cloudText('Ändringar väntar på synkning.',cloudErrorMessage(error));}finally{cloudBusy=false;renderStorageStatus();}}
-$('cloudRetryBtn').onclick=async()=>{if(!cloudReady&&cloudUser){cloudSubs.forEach(fn=>fn());cloudSubs=[];try{const p=await cloud.fsSDK.getDoc(cloud.fsSDK.doc(cloud.db,'staff',cloudUser.uid));if(p.exists()&&p.data().enabled===true){cloudReady=true;listenCloud();}}catch(error){cloudText('Kunde inte ansluta.',cloudErrorMessage(error));}}syncCloud();};
+$('cloudRetryBtn').onclick=async()=>{if(!cloudReady&&cloudUser){cloudSubs.forEach(fn=>fn());cloudSubs=[];try{const p=await cloud.fsSDK.getDoc(cloud.fsSDK.doc(cloud.db,'staff',cloudUser.uid));if(p.exists()&&p.data().enabled===true){cloudReady=true;listenCloud();void resumeHandQueue();}}catch(error){cloudText('Kunde inte ansluta.',cloudErrorMessage(error));}}syncCloud();};
 $('cloudUploadBtn').onclick=async()=>{if(!cloudReady)return;if(!await ask('Synka datorns planering?','Lokala lärarlistor, klasser och arbetsytor skickas till skolans Firebase. Om en annan dator har ändrat samma post får du välja vilken version som ska behållas.',{confirm:'Synka planering'}))return;saveProfile(false);for(const kind of ['teachers','classes'])dbData[kind].forEach(x=>markDirty(kind,x.id));for(const id of Object.keys(dbData.profiles))markDirty('profiles',id);writeLocal();syncCloud();};
 window.addEventListener('online',scheduleSync);window.addEventListener('offline',()=>cloudText('Utan nätverk · nya ändringar sparas på datorn.'));
 $('fullscreenBtn').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{toast('Använd webbläsarens helskärmsläge på den här enheten.');}};
@@ -432,9 +459,214 @@ function renderChampionship(records){const rows=championshipRows(records),counte
 async function resetChampionship(){if(hasUnfinished()||cloudBusy){toast('Avsluta lektionen och låt synkningen bli klar först.');return;}if(cloudConnectionEnabled&&cloudConfigPresent()&&(!cloudReady||!navigator.onLine)){toast('Anslut till molnet för att nollställa skolans highscore.');return;}if(!await ask('Nollställ highscore för en ny termin?','Alla klasser börjar på 0 poäng i Vecka och All time. Det gäller alla lärare. Lektionshistorik och skolans streakrekord finns kvar.',{confirm:'Nollställ highscore'}))return;const resetAt=Date.now();try{if(cloudConnectionEnabled&&cloudConfigPresent()){await cloud.fsSDK.runTransaction(cloud.db,async tx=>{const ref=cloud.fsSDK.doc(cloud.db,'schools','klasskampen','settings','championship'),old=await tx.get(ref);tx.set(ref,{resetAt,updatedAt:resetAt,revision:(old.exists()?old.data().revision:0)+1});});}dbData.championshipResetAt=resetAt;writeLocal();renderHighscoreTable();toast('Ny tävlingsperiod. Historik och streakrekord finns kvar.');}catch(error){cloudText('Highscore kunde inte nollställas.',cloudErrorMessage(error));}}
 $('resetChampionshipBtn').onclick=resetChampionship;
 
+const handsCollection = 'handLessons';
+const handLifetimeMs = 3 * 60 * 60 * 1000;
+const handRoomKey = 'klasskampen-teacher-hand-room';
+const panelChoices = new Map();
+let handShare = 28;
+let handRoom = null;
+let handUnsubscribe = null;
+let handExpiry = null;
+let handBusy = false;
+let openingHandQueue;
+let handRows = [];
+
+function renderClassroomPanels(split) {
+  const checklist = panelChoices.get('checklistCard') ?? split > 0;
+  const instructions = panelChoices.get('instructionsCard') ?? split < 100;
+  const hands = panelChoices.get('handCard') ?? false;
+  const showFirstDivider = checklist && instructions;
+  const showHandDivider = hands && (checklist || instructions);
+  const handWeight = showHandDivider ? handShare : hands ? 100 : 0;
+  const remaining = 100 - handWeight;
+  const checklistWeight = checklist && instructions ? Math.max(15, Math.min(85, split)) / 100 : Number(checklist);
+
+  $('checklistCard').classList.toggle('hidden', !checklist);
+  $('instructionsCard').classList.toggle('hidden', !instructions);
+  $('handCard').classList.toggle('hidden', !hands);
+  $('contentDivider').classList.toggle('hidden', !showFirstDivider);
+  $('handDivider').classList.toggle('hidden', !showHandDivider);
+  $('handDivider').setAttribute('aria-valuenow', String(handShare));
+  $('checklistCard').style.flexGrow = String(remaining * checklistWeight);
+  $('instructionsCard').style.flexGrow = String(remaining * (1 - checklistWeight));
+  $('handCard').style.flexGrow = String(handWeight);
+  document.querySelectorAll('.board-panel-tabs button').forEach(button => {
+    button.setAttribute('aria-pressed', String(!$(button.getAttribute('aria-controls')).classList.contains('hidden')));
+  });
+}
+
+function initHandPanels() {
+  document.querySelectorAll('.board-panel-tabs button').forEach(button => {
+    button.onclick = () => {
+      const id = button.getAttribute('aria-controls');
+      panelChoices.set(id, $(id).classList.contains('hidden'));
+      renderLessonContent();
+    };
+  });
+  const divider = $('handDivider');
+  function setShare(value) {
+    handShare = Math.max(15, Math.min(75, Math.round(value)));
+    renderLessonContent();
+  }
+  divider.onpointerdown = event => {
+    if (event.button !== 0) return;
+    divider.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  };
+  divider.onpointermove = event => {
+    if (!divider.hasPointerCapture(event.pointerId)) return;
+    const rect = $('lessonContentColumn').getBoundingClientRect();
+    setShare((rect.bottom - event.clientY) / Math.max(1, rect.height - $('boardPanelTabs').offsetHeight) * 100);
+  };
+  divider.onkeydown = event => {
+    if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    setShare(handShare + (event.key === 'ArrowUp' ? 5 : -5));
+  };
+  divider.ondblclick = () => setShare(28);
+  const address = $('handStudentAddress');
+  if (location.host) address.textContent = location.host + new URL(address.href, location.href).pathname;
+  $('openHandQueue').onclick = () => {
+    if (openingHandQueue) return openingHandQueue;
+    openingHandQueue = openHandQueue().finally(() => { openingHandQueue = null; });
+    return openingHandQueue;
+  };
+  $('closeHandQueue').onclick = closeHandQueue;
+  renderHandQueue();
+}
+
+function rememberHandRoom(code) {
+  try {
+    if (code) sessionStorage.setItem(handRoomKey, code);
+    else sessionStorage.removeItem(handRoomKey);
+  } catch {}
+}
+
+function renderHandQueue() {
+  $('handCode').textContent = handRoom?.code ?? '—';
+  $('handCount').textContent = handRows.length + ' väntar';
+  $('handJoinInfo').classList.toggle('hidden', !handRoom);
+  $('openHandQueue').classList.toggle('hidden', Boolean(handRoom));
+  $('closeHandQueue').classList.toggle('hidden', !handRoom);
+  $('openHandQueue').disabled = handBusy;
+  $('closeHandQueue').disabled = handBusy;
+  $('handRows').replaceChildren(...handRows.map(row => {
+    const li = document.createElement('li');
+    const name = document.createElement('span');
+    name.textContent = row.name;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Klar';
+    button.setAttribute('aria-label', 'Markera ' + row.name + ' som klar');
+    button.onclick = async () => {
+      button.disabled = true;
+      try { await cloud.fsSDK.deleteDoc(row.ref); }
+      catch { $('handStatus').textContent = 'Kunde inte ta bort handen. Försök igen.'; button.disabled = false; }
+    };
+    li.append(name, button);
+    return li;
+  }));
+}
+
+function clearHandRoom() {
+  handUnsubscribe?.();
+  clearTimeout(handExpiry);
+  handUnsubscribe = handExpiry = handRoom = null;
+  handRows = [];
+  rememberHandRoom(null);
+  renderHandQueue();
+}
+
+function watchHandRoom(ref, expiresIn = handLifetimeMs) {
+  handRoom = {code: ref.id, ref};
+  rememberHandRoom(ref.id);
+  handExpiry = setTimeout(() => { void closeHandQueue(); }, Math.max(0, expiresIn));
+  const {fsSDK} = cloud;
+  handUnsubscribe = fsSDK.onSnapshot(fsSDK.query(fsSDK.collection(ref, 'hands'), fsSDK.orderBy('raisedAt')), snapshot => {
+    handRows = snapshot.docs.map(doc => ({name: doc.data().name, ref: doc.ref}));
+    $('handStatus').textContent = '';
+    renderHandQueue();
+  }, () => { $('handStatus').textContent = 'Kön kunde inte läsas. Kontrollera anslutningen.'; });
+  renderHandQueue();
+}
+
+async function resumeHandQueue() {
+  let code;
+  try { code = sessionStorage.getItem(handRoomKey); } catch { return; }
+  if (!code || handRoom || handBusy) return;
+  handBusy = true;
+  renderHandQueue();
+  try {
+    const {fsSDK, db} = cloud;
+    const ref = fsSDK.doc(db, handsCollection, code);
+    const snapshot = await fsSDK.getDocFromServer(ref);
+    if (!snapshot.exists() || snapshot.data().closed) { rememberHandRoom(null); return; }
+    const remaining = snapshot.data().openedAt.toMillis() + handLifetimeMs - Date.now();
+    watchHandRoom(ref, remaining);
+  } catch { $('handStatus').textContent = 'Kunde inte återansluta till handuppräckningen.'; }
+  finally { handBusy = false; renderHandQueue(); }
+}
+
+async function openHandQueue() {
+  if (handBusy || handRoom) return;
+  if (!cloudReady || !navigator.onLine) {
+    $('handStatus').textContent = 'Anslut till Firebase med lärarkontot för att öppna kön.';
+    return;
+  }
+  handBusy = true;
+  renderHandQueue();
+  const {fsSDK, db} = cloud;
+  try {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = String(crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000);
+      const ref = fsSDK.doc(db, handsCollection, code);
+      const created = await fsSDK.runTransaction(db, async transaction => {
+        if ((await transaction.get(ref)).exists()) return false;
+        transaction.set(ref, {openedAt: fsSDK.serverTimestamp(), closed: false});
+        return true;
+      });
+      if (created) { watchHandRoom(ref); return; }
+    }
+    $('handStatus').textContent = 'Ingen ledig kod hittades. Försök igen.';
+  } catch { $('handStatus').textContent = 'Kön kunde inte öppnas. Kontrollera Firebase-reglerna och anslutningen.'; }
+  finally { handBusy = false; renderHandQueue(); }
+}
+
+async function closeHandQueue() {
+  if (openingHandQueue) await openingHandQueue;
+  if (handBusy) return false;
+  if (!handRoom) return true;
+  handBusy = true;
+  renderHandQueue();
+  const {fsSDK, db} = cloud;
+  const {ref} = handRoom;
+  let closed = false;
+  try {
+    await fsSDK.runTransaction(db, async transaction => {
+      const room = await transaction.get(ref);
+      if (room.exists() && !room.data().closed) transaction.update(ref, {closed: true});
+    });
+    closed = true;
+    const names = await fsSDK.getDocsFromServer(fsSDK.collection(ref, 'hands'));
+    for (let start = 0; start < names.docs.length; start += 400) {
+      const batch = fsSDK.writeBatch(db);
+      names.docs.slice(start, start + 400).forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }
+    $('handStatus').textContent = 'Kön är stängd.';
+  } catch {
+    $('handStatus').textContent = closed ? 'Kön är stängd. Några köposter kunde inte rensas.' : 'Kön kunde inte stängas. Försök igen när anslutningen är tillbaka.';
+  } finally {
+    if (closed) clearHandRoom();
+    handBusy = false;
+    renderHandQueue();
+  }
+  return closed;
+}
+
 // Start. En återställd mätning fortsätter först när läraren startar mikrofonen igen.
 if(!dbData.teachers.some(t=>t.id===dbData.currentTeacherId&&!t.archived))dbData.currentTeacherId=dbData.teachers.find(t=>!t.archived).id;
-hydrateProfile();renderHighscoreTable();renderScheduleCards();renderEntities();renderIcons();updateAnalogClock();updateSilenceUI();
+initHandPanels();hydrateProfile();renderHighscoreTable();renderScheduleCards();renderEntities();renderIcons();updateAnalogClock();updateSilenceUI();
 if(dbData.draft?.session&&dbData.draft.session.phase!=='ended'&&dbData.draft.session.teacherId===teacher().id){const d=dbData.draft;if(Number.isFinite(d.totalActiveSec)&&d.totalActiveSec>=0&&Number.isFinite(d.totalSilenceAccumulatedSec)&&d.totalSilenceAccumulatedSec>=0&&d.totalSilenceAccumulatedSec<=d.totalActiveSec){session=copy(d.session);session.phase='active';state.currentSilenceSec=Math.max(0,+d.currentSilenceSec||0);state.sessionRecordSec=Math.max(0,+d.sessionRecordSec||0);state.totalActiveSec=d.totalActiveSec;state.totalSilenceAccumulatedSec=d.totalSilenceAccumulatedSec;updateSilenceUI();renderStatus();toast('Din oavslutade mätning har återställts pausad. Starta mikrofonen för att fortsätta.');}}
 $('firebaseApiKeyInput').value=cloudConfigPresent()?JSON.stringify(firebaseConfig,null,2):'';document.body.classList.toggle('reduce-motion',!dbData.settings.motion);setMicButton();renderStatus();writeLocal();setupCloud();
 setInterval(()=>{if(state.micActive||state.timer1Running||state.timer2Running)saveProfile(false);},3000);
