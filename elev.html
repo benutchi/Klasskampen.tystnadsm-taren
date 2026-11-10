@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Räck upp handen · Klasskampen</title>
+<style>
+:root{color-scheme:dark;font:16px/1.5 system-ui,sans-serif;color:#f5f6ef;background:#111c1a}
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 14%,#27433c,transparent 62%),#111c1a}
+main{width:min(100%,440px)}
+.brand{color:#c0d4c9;text-align:center;font-size:.82rem;letter-spacing:.06em}
+.brand{margin:0 0 16px;font-weight:650}
+section{background:#1b2b27;border:1px solid #3e574e;border-radius:24px;padding:clamp(22px,6vw,36px);box-shadow:0 20px 65px #0b121058}
+h1{font-size:clamp(1.75rem,6vw,2.25rem);line-height:1.12;letter-spacing:-.045em;margin:0 0 10px}
+p{margin:0;color:#bfd0c7}
+form{margin-top:24px;display:grid;gap:16px}
+label{display:grid;gap:6px;font-weight:600}
+input,button{font:inherit;border-radius:11px;min-height:48px;padding:10px 13px}
+input{width:100%;color:#f5f6ef;background:#121e1b;border:1px solid #5a7268}
+input::placeholder{color:#a0b4a9}
+button{background:#c6e9d2;color:#14261d;border:1px solid transparent;font-weight:700;cursor:pointer}
+button:hover{background:#def5e6}
+button[data-waiting="true"]{background:transparent;border-color:#89b39d;color:#e2f5e9}
+button:focus-visible,input:focus-visible{outline:3px solid #ffe29c;outline-offset:3px}
+#status{font-size:.92rem;color:#d6eade}
+#status:empty{display:none}
+</style>
+</head>
+<body>
+<main>
+<p class="brand">KLASSKAMPEN · ELEVSIDA</p>
+<section aria-labelledby="heading">
+<h1 id="heading">Räck upp handen</h1>
+<p>Behöver du hjälp? Skriv ditt namn och koden som står på tavlan.</p>
+<form id="handForm">
+<label for="studentName">Ditt namn
+<input id="studentName" autocomplete="name" placeholder="Skriv ditt namn" maxlength="60" required></label>
+<label for="lessonCode">Lektionskod
+<input id="lessonCode" inputmode="numeric" autocomplete="off" pattern="[0-9]{6}" maxlength="6" placeholder="Sex siffror" required></label>
+<button id="handButton" type="submit">Räck upp handen</button>
+<p id="status" role="status"></p>
+</form>
+</section>
+
+</main>
+<script type="application/json" id="studentFirebaseConfig">{
+  "apiKey": "AIzaSyB11UzGL-a-g5p3Mjy0cLLzou5QIig0mb4",
+  "authDomain": "klasskampen-36642.firebaseapp.com",
+  "projectId": "klasskampen-36642",
+  "storageBucket": "klasskampen-36642.firebasestorage.app",
+  "messagingSenderId": "554018354163",
+  "appId": "1:554018354163:web:68ddb4554df875b8ab5886"
+}</script>
+<script type="module">
+const blockedNameWords = new Set([
+  'fan', 'jävla', 'jävel', 'jävlar', 'helvete', 'skit', 'kuk', 'fitta',
+  'hora', 'horunge', 'rövhål', 'idiot',
+  'fuck', 'fucker', 'fucking', 'motherfucker', 'shit', 'bullshit',
+  'asshole', 'bitch', 'bastard', 'cunt', 'whore'
+]);
+
+function containsBlockedNameWord(name) {
+  const words = name.normalize('NFKC').toLowerCase().match(/\p{L}+/gu) ?? [];
+  return words.some(word => blockedNameWords.has(word));
+}
+
+const nameInput = document.getElementById('studentName');
+const codeInput = document.getElementById('lessonCode');
+const button = document.getElementById('handButton');
+const statusLine = document.getElementById('status');
+const roomKey = 'klasskampen-student-hand-room';
+const handLifetimeMs = 3 * 60 * 60 * 1000;
+let connection;
+let currentRoom;
+let waiting = false;
+let busy = false;
+let stopWatching = [];
+let expiresTimer;
+
+function renderHandButton() {
+  button.disabled = busy;
+  button.dataset.waiting = String(waiting);
+  button.textContent = waiting ? 'Ta ner handen' : 'Räck upp handen';
+  nameInput.readOnly = codeInput.readOnly = waiting || busy;
+}
+
+async function connectStudent() {
+  if (!connection) {
+    connection = (async () => {
+      const [appSDK, authSDK, fs] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')
+      ]);
+      const app = appSDK.initializeApp(JSON.parse(document.getElementById('studentFirebaseConfig').textContent), 'elev');
+      const auth = authSDK.initializeAuth(app, {persistence: authSDK.browserLocalPersistence});
+      return {auth, authSDK, fs, db: fs.getFirestore(app)};
+    })().catch(error => { connection = null; throw error; });
+  }
+  const client = await connection;
+  await client.auth.authStateReady();
+  const user = client.auth.currentUser ?? (await client.authSDK.signInAnonymously(client.auth)).user;
+  return {...client, uid: user.uid};
+}
+
+function rememberRoom(code) {
+  try {
+    if (code) sessionStorage.setItem(roomKey, code);
+    else sessionStorage.removeItem(roomKey);
+  } catch {}
+}
+
+function leaveRoom(message) {
+  stopWatching.forEach(stop => stop());
+  stopWatching = [];
+  clearTimeout(expiresTimer);
+  currentRoom = null;
+  waiting = false;
+  rememberRoom(null);
+  statusLine.textContent = message;
+  renderHandButton();
+}
+
+function roomRefs(client, code) {
+  const room = client.fs.doc(client.db, 'handLessons', code);
+  return {room, hand: client.fs.doc(room, 'hands', client.uid)};
+}
+
+function watchHand(client, refs, roomData) {
+  const {fs} = client;
+  currentRoom = refs;
+  waiting = true;
+  rememberRoom(refs.room.id);
+  statusLine.textContent = 'Du står i kön. Läraren ser att du väntar.';
+  expiresTimer = setTimeout(() => leaveRoom('Handuppräckningen har stängts.'),
+    Math.max(0, roomData.openedAt.toMillis() + handLifetimeMs - Date.now()));
+  stopWatching = [
+    fs.onSnapshot(refs.room, {includeMetadataChanges: true}, snapshot => {
+      if (snapshot.metadata.fromCache) return;
+      if (!snapshot.exists() || snapshot.data().closed) leaveRoom('Handuppräckningen har stängts.');
+    }, () => leaveRoom('Kön är stängd eller går inte att nå.')),
+    fs.onSnapshot(refs.hand, {includeMetadataChanges: true}, snapshot => {
+      if (!snapshot.metadata.fromCache && !snapshot.metadata.hasPendingWrites && !snapshot.exists()) {
+        leaveRoom('Läraren har tagit bort din hand från kön.');
+      }
+    }, () => { statusLine.textContent = 'Kunde inte läsa din plats i kön.'; })
+  ];
+  renderHandButton();
+}
+
+document.getElementById('handForm').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (busy) return;
+  const studentName = nameInput.value.trim();
+  const code = codeInput.value.trim();
+  if (!waiting && (!studentName || studentName.length > 60 || containsBlockedNameWord(studentName))) {
+    statusLine.textContent = 'Skriv ditt förnamn.';
+    nameInput.focus();
+    return;
+  }
+  if (!waiting && !/^\d{6}$/.test(code)) {
+    statusLine.textContent = 'Skriv de sex siffrorna som står på tavlan.';
+    return;
+  }
+  busy = true;
+  renderHandButton();
+  try {
+    const client = await connectStudent();
+    const {fs, db} = client;
+    if (waiting) {
+      const ref = currentRoom.hand;
+      await fs.runTransaction(db, async transaction => {
+        if ((await transaction.get(ref)).exists()) transaction.delete(ref);
+      });
+      leaveRoom('Du har tagit ner handen.');
+      return;
+    }
+    const refs = roomRefs(client, code);
+    const {roomData, name} = await fs.runTransaction(db, async transaction => {
+      const room = await transaction.get(refs.room);
+      if (!room.exists() || room.data().closed) throw new Error('room-closed');
+      const hand = await transaction.get(refs.hand);
+      if (hand.exists()) return {roomData: room.data(), name: hand.data().name};
+      transaction.set(refs.hand, {name: studentName, raisedAt: fs.serverTimestamp()});
+      return {roomData: room.data(), name: studentName};
+    });
+    nameInput.value = name;
+    watchHand(client, refs, roomData);
+  } catch (error) {
+    statusLine.textContent = error.code === 'auth/operation-not-allowed'
+      ? 'Elevsidan är inte aktiverad ännu. Säg till läraren.'
+      : error.code === 'permission-denied' || error.message === 'room-closed'
+        ? 'Kön är stängd eller koden stämmer inte. Kolla tavlan.'
+        : 'Kunde inte ansluta. Försök igen.';
+  } finally {
+    busy = false;
+    renderHandButton();
+  }
+});
+
+async function restoreStudentHand() {
+  let code;
+  try { code = sessionStorage.getItem(roomKey); } catch { return; }
+  if (!code) return;
+  busy = true;
+  renderHandButton();
+  try {
+    const client = await connectStudent();
+    const refs = roomRefs(client, code);
+    const hand = await client.fs.getDocFromServer(refs.hand);
+    if (!hand.exists()) { leaveRoom('Din hand står inte längre i kön.'); return; }
+    const room = await client.fs.getDocFromServer(refs.room);
+    if (!room.exists() || room.data().closed) { leaveRoom('Handuppräckningen har stängts.'); return; }
+    codeInput.value = code;
+    nameInput.value = hand.data().name;
+    watchHand(client, refs, room.data());
+  } catch { leaveRoom('Kunde inte återansluta. Kontrollera koden och försök igen.'); }
+  finally { busy = false; renderHandButton(); }
+}
+void restoreStudentHand();
+
+</script>
+</body>
+</html>
