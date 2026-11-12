@@ -198,9 +198,36 @@ function activeSoundMode(){return soundModeForLimit(activeThreshold());}
 function loadDeviceSoundLimit(){state.noiseLimit=null;try{const saved=JSON.parse(localStorage.getItem('klasskampen-sound-limit-'+teacher().id));if(typeof saved==='number'&&saved>=1&&saved<=95){state.noiseLimit=Math.min(70,saved);state.sensitivity=soundModeForLimit(state.noiseLimit);}}catch{}}
 function saveDeviceSoundLimit(){try{localStorage.setItem('klasskampen-sound-limit-'+teacher().id,JSON.stringify(state.noiseLimit));}catch{toast('Ljudgränsen kunde inte sparas på datorn.');}}
 function renderSoundControl(){const limit=activeThreshold(),mode=activeSoundMode();$('boardSensitivitySlider').value=limit;$('boardSensitivityBadge').textContent=({1:'Genomgång · inga poäng',2:'Grupparbete',3:'Lugnt arbete',4:'Knäpptyst',5:'Lugnt arbete'})[mode]+' · gräns '+number(limit,1);$('boardSensitivitySlider').setAttribute('aria-valuetext',$('boardSensitivityBadge').textContent);$('noiseThreshold').style.left=limit+'%';}
-let undoWake=null;
-function canUndoWake(){return undoWake!==null&&session?.phase==='active'&&performance.now()-undoWake.at<=60000;}
-function clearWakeUndo(){undoWake=null;state.lastWokenScore=0;}
+let wakeUndoHistory = [];
+
+function availableWakeUndos() {
+  const now = performance.now();
+  wakeUndoHistory = wakeUndoHistory.filter(wake =>
+    wake.sessionId === session?.id && now - wake.at <= 60000
+  );
+  return session?.phase === 'active' ? wakeUndoHistory.length : 0;
+}
+
+function canUndoWake() {
+  return availableWakeUndos() > 0;
+}
+
+function clearWakeUndo() {
+  wakeUndoHistory = [];
+  state.lastWokenScore = 0;
+}
+
+function renderWakeUndo() {
+  const count = availableWakeUndos();
+  const button = $('boardUndoWakeBtn');
+  button.disabled = count === 0;
+  button.textContent = count ? 'Ångra väckning (' + count + ')' : 'Ångra väckning';
+  const latest = wakeUndoHistory[wakeUndoHistory.length - 1];
+  button.title = count
+    ? count + ' väckningar kan ångras. Senaste väckningen har ' +
+      Math.max(0, Math.ceil((60000 - (performance.now() - latest.at)) / 1000)) + ' sekunder kvar.'
+    : 'Varje väckning kan ångras en gång inom en minut.';
+}
 function calibrationBaseline(samples){const sorted=samples.filter(Number.isFinite).sort((a,b)=>a-b);return sorted.length<60?null:sorted[Math.floor((sorted.length-1)*.9)];}
 function renderCalibration(){$('calibrationStatus').textContent=roomCalibration?'Lyssnar · arbeta tyst i 5 sekunder':roomBaseline===null?'': 'Kalibrerat på den här datorn';$('calibrateRoomBtn').disabled=Boolean(roomCalibration);$('resetCalibrationBtn').classList.toggle('hidden',roomBaseline===null);}
 function cancelCalibration(){if(!roomCalibration)return;roomCalibration=null;lastAudioTime=null;previousQuiet=false;state.loudSoundStartTime=null;renderCalibration();}
@@ -250,7 +277,7 @@ function syncTimerFields(n){const m=Math.ceil(state[`timer${n}RemainingSec`]/60)
 function hydrateProfile(){const p=dbData.profiles[teacher().id]||defaultProfile();for(const k of profileFields)state[k]=copy(p[k]??defaultProfile()[k]);if(state.sensitivity===5)state.sensitivity=3;loadDeviceSoundLimit();$('timer1TitleInput').value=p.timer1Title||'Lektionstid';$('timer2TitleInput').value=p.timer2Title||'Eget arbete';$('boardLessonName').textContent=p.timer1Title||'Dagens lektion';$('checklistHeaderTitle').value=p.checklistTitle||'Lektionens moment';state.timer1Running=state.timer2Running=false;[1,2].forEach(n=>{timerDeadlines[n]=0;$(`timer${n}ToggleBtn`).textContent='Starta';syncTimerFields(n);updateTimerCircle(n);});if(state.scheduleTiming)activateScheduleClock(state.scheduleTiming);renderChecklist();renderControls();}
 function renderControls(){const t=teacher(),c=activeClass();state.activeClassId=c?.id;$('topTeacherName').textContent=t?.name||'Välj lärare';$('topClassBadge').textContent=c?.name||'Välj klass';for(const [id,list,value] of [['dashTeacherSelect',dbData.teachers,t?.id],['dashClassSelect',dbData.classes,c?.id]]){$(id).replaceChildren();list.filter(x=>!x.archived).forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name;$(id).append(o);});$(id).value=value;}
 $('teacherRoomHint').textContent=`${t?.name||''}s arbetsyta`;renderSoundControl();$('soundGuardBadge').textContent=state.soundGuardMs===2000?'2 sekunders ljudskydd':'1 sekunds ljudskydd';$('soundGuardSelect').value=state.soundGuardMs;$('secondTimerCard').classList.toggle('hidden',!state.secondTimerVisible);$('secondTimerToggleText').textContent=state.secondTimerVisible?'Dölj extra timer':'Visa extra timer';$('checklistSizeLabel').textContent=state.checklistSize==='large'?'Stor vy':'Kompakt vy';$('ceremonyEnabled').checked=dbData.settings.ceremony;$('motionEnabled').checked=dbData.settings.motion;renderStatus();renderStorageStatus();}
-function renderStatus(){$('testModeBanner').classList.toggle('hidden',!session?.isTest);$('startTestLessonBtn').disabled=micBusy||hasUnfinished();$('scoringModeNotice').classList.toggle('hidden',activeSoundMode()!==1);const ended=session?.phase==='ended';$('lessonStatus').textContent=ended?'Lektionen avslutad':state.scheduleTiming&&Date.now()>=state.scheduleTiming.end?'Schematiden är slut':state.scheduleTiming&&Date.now()<state.scheduleTiming.start?'Väntar på schemastart':state.isTeaching?'Mätningen pausad':state.micActive?(activeSoundMode()===1?'Genomgång · inga poäng räknas':'Mätning pågår'):session?'Mätningen pausad':state.scheduleTiming&&state.timer1Running?'Schematimern går':'Redo för lektion';$('endLessonBtn').disabled=!session||ended||finishPending;$('boardTeachPauseBtn').disabled=ended;$('boardTeachPauseBtn').setAttribute('aria-pressed',String(state.isTeaching));$('teachingStatusOverlay').classList.toggle('hidden',!state.isTeaching||ended);$('boardUndoWakeBtn').disabled=!canUndoWake()||ended;$('boardUndoWakeBtn').title=canUndoWake()?'Ångra senaste väckningen · '+Math.max(0,Math.ceil((60000-(performance.now()-undoWake.at))/1000))+' sekunder kvar':'Senaste väckningen kan ångras en gång inom en minut';}
+function renderStatus(){$('testModeBanner').classList.toggle('hidden',!session?.isTest);$('startTestLessonBtn').disabled=micBusy||hasUnfinished();$('scoringModeNotice').classList.toggle('hidden',activeSoundMode()!==1);const ended=session?.phase==='ended';$('lessonStatus').textContent=ended?'Lektionen avslutad':state.scheduleTiming&&Date.now()>=state.scheduleTiming.end?'Schematiden är slut':state.scheduleTiming&&Date.now()<state.scheduleTiming.start?'Väntar på schemastart':state.isTeaching?'Mätningen pausad':state.micActive?(activeSoundMode()===1?'Genomgång · inga poäng räknas':'Mätning pågår'):session?'Mätningen pausad':state.scheduleTiming&&state.timer1Running?'Schematimern går':'Redo för lektion';$('endLessonBtn').disabled=!session||ended||finishPending;$('boardTeachPauseBtn').disabled=ended;$('boardTeachPauseBtn').setAttribute('aria-pressed',String(state.isTeaching));$('teachingStatusOverlay').classList.toggle('hidden',!state.isTeaching||ended);renderWakeUndo();}
 function renderStorageStatus(){const pending=dbData.records.filter(r=>!r.cloudSaved).length+Object.values(dbData.pending).reduce((n,a)=>n+a.length,0);$('storageStatus').replaceChildren();const dot=document.createElement('span');dot.className='status-dot'+(cloudReady?' connected':'');$('storageStatus').append(dot,document.createTextNode(!storageAvailable?'Kunde inte spara lokalt':cloudReady?(pending?'Molnet anslutet · ändringar väntar':'Synkat med skolans moln'):cloudUser?'Molnanslutningen väntar':'Sparas på den här datorn'));$('scoreScopeLabel').textContent=cloudReady?'Skolans avslutade lektioner · synkas via Firebase':'Avslutade lektioner på den här datorn';}
 function updateSilenceUI(){const pct=silencePct(state.totalSilenceAccumulatedSec,state.totalActiveSec);$('currentSilenceTimerDisplay').textContent=fmtTime(state.currentSilenceSec);$('sessionRecordTimerDisplay').textContent=fmtTime(state.sessionRecordSec);$('fairScoreDisplay').textContent=number(calculateFairScore(state.totalSilenceAccumulatedSec,state.totalActiveSec))+' p';$('silenceFocusPctDisplay').textContent=pct===null?'Ingen mättid ännu':number(pct,0)+' % tyst tid';}
 // Inbyggda, fasta vektorikoner – ingen extern ikon- eller stilmotor.
@@ -342,8 +369,26 @@ previousQuiet=quiet&&activeSoundMode()!==1&&!state.isTeaching&&!state.isCooldown
 function audioLoop(now){if(!state.micActive||!analyserNode)return;if(document.hidden){cancelCalibration();lastAudioTime=null;previousQuiet=false;state.loudSoundStartTime=null;audioFrame=requestAnimationFrame(audioLoop);return;}analyserNode.getByteFrequencyData(freqData);let sum=0;for(const b of freqData)sum+=b;const volume=Math.min(100,Math.round((sum/freqData.length)/128*100));$('noiseVolumeBar').style.width=volume+'%';$('noiseLevelPctText').textContent=volume+' %';$('noiseVolumeBar').classList.toggle('loud',volume>activeThreshold());$('noiseVolumeBar').classList.toggle('warn',volume>activeThreshold()*.65&&volume<=activeThreshold());if(collectCalibration(volume,now)){audioFrame=requestAnimationFrame(audioLoop);return;}const rawDt=lastAudioTime===null?0:(now-lastAudioTime)/1000;
 // Ingen mättid eller sammanhängande ljudkedja tillskrivs ett glapp i ljudsampling.
 if(rawDt>.5){state.loudSoundStartTime=null;previousQuiet=false;}processNoise(volume,now,rawDt>.5?0:rawDt);lastAudioTime=now;updateSilenceUI();audioFrame=requestAnimationFrame(audioLoop);}
-function triggerBearWakeup(){if(state.isCooldown||state.isTeaching||session?.phase!=='active')return;state.isCooldown=true;clearWakeUndo();if(activeSoundMode()!==1){state.lastWokenScore=state.currentSilenceSec;undoWake={at:performance.now(),streak:state.currentSilenceSec,sessionId:session.id};session.wakeCount++;state.currentSilenceSec=0;}state.loudSoundStartTime=null;$('alarmFlash').style.opacity=1;$('bearSvgWrap').classList.remove('bear-breathing');$('bearSvgWrap').classList.add('bear-startled');$('zzzContainer').classList.add('hidden');for(const id of ['eyeSleepingLeft','eyeSleepingRight','mouthSleeping'])$(id).classList.add('hidden');for(const id of ['eyeWakingLeft','eyeWakingLeftPupil','eyeWakingRight','eyeWakingRightPupil','mouthGasping'])$(id).classList.remove('hidden');$('bearSpeechText').textContent='Björnen vaknade. Vi hittar lugnet igen.';$('bearSpeechText').classList.add('text-rose-600');renderStatus();wakeTimeout=setTimeout(()=>{resetBear();if(state.micActive)$('bearSpeechText').textContent=state.isTeaching?'Mätningen är pausad.':'Nu sover björnen igen.';},4000);updateSilenceUI();}
-$('boardUndoWakeBtn').onclick=()=>{if(!canUndoWake()||undoWake.sessionId!==session?.id){renderStatus();return;}state.currentSilenceSec+=undoWake.streak;state.sessionRecordSec=Math.max(state.sessionRecordSec,state.currentSilenceSec);clearWakeUndo();session.wakeCount=Math.max(0,session.wakeCount-1);resetBear();previousQuiet=false;lastAudioTime=null;$('bearSpeechText').textContent='Väckningen ångrad. Sviten är återställd.';updateSilenceUI();renderStatus();saveDraft();writeLocal();};
+function triggerBearWakeup(){if(state.isCooldown||state.isTeaching||session?.phase!=='active')return;state.isCooldown=true;availableWakeUndos();if(activeSoundMode()!==1){state.lastWokenScore=state.currentSilenceSec;wakeUndoHistory.push({at:performance.now(),streak:state.currentSilenceSec,sessionId:session.id});session.wakeCount++;state.currentSilenceSec=0;}state.loudSoundStartTime=null;$('alarmFlash').style.opacity=1;$('bearSvgWrap').classList.remove('bear-breathing');$('bearSvgWrap').classList.add('bear-startled');$('zzzContainer').classList.add('hidden');for(const id of ['eyeSleepingLeft','eyeSleepingRight','mouthSleeping'])$(id).classList.add('hidden');for(const id of ['eyeWakingLeft','eyeWakingLeftPupil','eyeWakingRight','eyeWakingRightPupil','mouthGasping'])$(id).classList.remove('hidden');$('bearSpeechText').textContent='Björnen vaknade. Vi hittar lugnet igen.';$('bearSpeechText').classList.add('text-rose-600');renderStatus();wakeTimeout=setTimeout(()=>{resetBear();if(state.micActive)$('bearSpeechText').textContent=state.isTeaching?'Mätningen är pausad.':'Nu sover björnen igen.';},4000);updateSilenceUI();}
+$('boardUndoWakeBtn').onclick = () => {
+  if (!canUndoWake()) {
+    renderStatus();
+    return;
+  }
+  const wake = wakeUndoHistory.pop();
+  state.currentSilenceSec += wake.streak;
+  state.sessionRecordSec = Math.max(state.sessionRecordSec, state.currentSilenceSec);
+  state.lastWokenScore = 0;
+  session.wakeCount = Math.max(0, session.wakeCount - 1);
+  resetBear();
+  previousQuiet = false;
+  lastAudioTime = null;
+  $('bearSpeechText').textContent = 'Väckningen ångrad. Sviten är återställd.';
+  updateSilenceUI();
+  renderStatus();
+  saveDraft();
+  writeLocal();
+};
 function toggleTeacherPause(){if(session?.phase==='ended')return;state.isTeaching=!state.isTeaching;state.loudSoundStartTime=null;previousQuiet=false;lastAudioTime=null;resetBear();$('bearSpeechText').textContent=state.isTeaching?'Mätningen är pausad. Björnen vilar tryggt.':state.micActive?'Björnen sover. Fortsätt så.':'En lugn stund börjar här.';renderStatus();}
 $('boardTeachPauseBtn').onclick=toggleTeacherPause;$('quickResumeBtn').onclick=toggleTeacherPause;
 window.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!e.target.closest('input,textarea,select,button,[contenteditable=true]')&&!document.querySelector('dialog[open]')&&$('fullDashboardModal').classList.contains('hidden')){e.preventDefault();toggleTeacherPause();}if(e.key==='Escape'&&!document.querySelector('dialog[open]'))closeDashboard();});
@@ -685,7 +730,7 @@ document.addEventListener('fullscreenchange',updateClassroomView);
 
 
 
-setInterval(()=>{if(undoWake){if(!canUndoWake())clearWakeUndo();renderStatus();}},500);
+setInterval(() => { renderWakeUndo(); }, 500);
 
 async function startTestLesson(){if(micBusy||hasUnfinished()){toast('Avsluta den pågående lektionen innan du provar.');return;}if($('ceremonyDialog').open){toast('Stäng resultatet innan du provar.');return;}resetSession();startSession(true);$('timer1TitleInput').value='Provlektion · 5 minuter';$('boardLessonName').textContent='Provlektion · inga resultat sparas';session.subject='Provlektion';setTimer(1,300,false);state.timer2Running=false;timerDeadlines[2]=0;$('timer2ToggleBtn').textContent='Starta';await initMic();if(!state.micActive){resetSession();hydrateProfile();return;}state.timer1Running=true;timerDeadlines[1]=Date.now()+300000;$('timer1ToggleBtn').textContent='Pausa';renderStatus();toast('Provlektionen är igång. Prova ljudreglaget, Paus och Ångra väckning.');}
 $('startTestLessonBtn').onclick=startTestLesson;
