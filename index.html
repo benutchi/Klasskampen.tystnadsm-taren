@@ -331,6 +331,52 @@ function updateScheduleHint(){const timing=state.scheduleTiming;$('timer1Schedul
 function activateScheduleClock(timing){state.scheduleTiming=copy(timing);state.timer1TotalSec=(timing.end-timing.start)/1000;if(!timing.paused||Date.now()>=timing.end)state.timer1RemainingSec=scheduledRemaining(timing);state.timer1Running=!timing.paused&&Date.now()<timing.end;timerDeadlines[1]=timing.end;$('timer1ToggleBtn').textContent=state.timer1Running?'Pausa':'Starta';syncTimerFields(1);updateTimerCircle(1);updateScheduleHint();}
 async function loadLessonToBoard(lesson){if(!await allowNewWork())return;const cls=dbData.classes.find(c=>c.name===lesson.classTarget&&!c.archived);if(!cls){toast('Klassens namn är arkiverat eller saknas. Redigera lektionen och välj en aktiv klass.');return;}resetSession();activeLessonId=lesson.id;state.activeClassId=cls.id;$('timer1TitleInput').value=lesson.subject;$('boardLessonName').textContent=lesson.subject;setTimer(1,(durationFromTitle(lesson.subject)||lesson.durationMin)*60,false);const timing=scheduleTimes(lesson);if(timing){activateScheduleClock(timing);prepareChime();if(Date.now()>=timing.end)toast('Passets sluttid har redan passerat. Välj ett annat pass eller ställ en egen timer.');}Object.assign(state,lessonLayout(lesson));state.checklist=lesson.checklist.map(text=>({id:uid(),text,done:false}));renderChecklist();renderControls();saveProfile();closeDashboard();}
 
+let startupLessonSelection = true;
+
+function selectStartupLesson(now = Date.now()) {
+  if (hasUnfinished()) return;
+  const weekday = new Intl.DateTimeFormat('sv-SE', {weekday: 'long', timeZone: 'Europe/Stockholm'}).format(new Date(now));
+  const day = DAYS.find(name => name.toLowerCase() === weekday);
+  const candidates = (state.schedule[day] || [])
+    .map(lesson => ({lesson, timing: scheduleTimes(lesson, now)}))
+    .filter(({lesson, timing}) => timing && timing.end > now &&
+      dbData.classes.some(cls => cls.name === lesson.classTarget && !cls.archived))
+    .sort((a, b) => a.timing.start - b.timing.start);
+  const selected = candidates.find(item => item.timing.start <= now) || candidates[0];
+  if (day) state.selectedDay = day;
+  if (!selected) {
+    state.scheduleTiming = null;
+    activeLessonId = null;
+    setTimer(1, 0, false);
+    $('boardLessonName').textContent = day ? 'Inga fler lektioner idag' : 'Ingen schemalagd lektion idag';
+    $('timer1TitleInput').value = 'Lektionstid';
+    return;
+  }
+  const {lesson, timing} = selected;
+  const cls = dbData.classes.find(item => item.name === lesson.classTarget && !item.archived);
+  const sameLesson = state.scheduleTiming?.start === timing.start &&
+    state.scheduleTiming?.end === timing.end && state.activeClassId === cls.id &&
+    $('timer1TitleInput').value === lesson.subject;
+  activeLessonId = lesson.id;
+  state.activeClassId = cls.id;
+  $('timer1TitleInput').value = lesson.subject;
+  $('boardLessonName').textContent = lesson.subject;
+  if (!sameLesson) {
+    Object.assign(state, lessonLayout(lesson));
+    state.checklist = lesson.checklist.map(text => ({id: uid(), text, done: false}));
+    panelChoices.clear();
+  }
+  activateScheduleClock(timing);
+  renderChecklist();
+  renderControls();
+}
+
+function finishStartupSelection() {
+  startupLessonSelection = false;
+}
+document.addEventListener('pointerdown', finishStartupSelection);
+document.addEventListener('keydown', finishStartupSelection);
+
 function openLessonEditor(lesson=null){editingLesson=lesson;$('lessonEditorTitle').textContent=lesson?'Redigera lektion':'Ny lektion';const title=lesson?.subject||'',m=timeRange(title);$('lessonSubject').value=m?title.replace(m[0],'').trim():title;$('lessonStart').value=m?m[1].padStart(5,'0'):'';$('lessonEnd').value=m?m[2].padStart(5,'0'):'';$('lessonDuration').value=durationFromTitle(title)||lesson?.durationMin||60;const layout=lessonLayout(lesson||{});$('lessonInstructions').value=layout.instructions;$('lessonChecklistFont').value=layout.checklistFont;$('lessonInstructionsFont').value=layout.instructionsFont;$('lessonPoints').value=(lesson?.checklist||['Startuppgift','Eget arbete','Exit ticket']).join('\n');$('lessonClass').replaceChildren();dbData.classes.filter(c=>!c.archived||c.name===lesson?.classTarget).forEach(c=>{const o=document.createElement('option');o.value=c.name;o.textContent=c.name;$('lessonClass').append(o);});$('lessonClass').value=lesson?.classTarget||activeClass().name;$('lessonError').textContent='';$('lessonEditor').showModal();$('lessonSubject').focus();}
 $('addNewLessonCardBtn').onclick=()=>openLessonEditor();$('cancelLessonEdit').onclick=()=>{$('lessonEditor').close();applyAllQueuedProfiles();};$('lessonEditor').addEventListener('close',()=>applyAllQueuedProfiles());for(const id of ['lessonStart','lessonEnd'])$(id).oninput=()=>{const m=minutesBetween($('lessonStart').value,$('lessonEnd').value);if(m)$('lessonDuration').value=m;};
 $('lessonForm').onsubmit=e=>{e.preventDefault();const start=$('lessonStart').value,end=$('lessonEnd').value,range=minutesBetween(start,end);if((start||end)&&!range){$('lessonError').textContent='Fyll i både start och slut. Sluttiden ska vara senare än starttiden.';return;}const duration=range||+$('lessonDuration').value,subject=$('lessonSubject').value.trim();if(!subject||duration<1||duration>1440||!Number.isInteger(duration))return;const l={id:editingLesson?.id||uid(),subject:subject+(start?` ${start}–${end}`:''),durationMin:duration,classTarget:$('lessonClass').value,instructions:$('lessonInstructions').value,contentSplit:-1,checklistFont:Number($('lessonChecklistFont').value),instructionsFont:Number($('lessonInstructionsFont').value),checklist:$('lessonPoints').value.split('\n').map(x=>x.trim()).filter(Boolean)};if(editingLesson)Object.assign(editingLesson,l);else state.schedule[state.selectedDay].push(l);if(activeLessonId===l.id&&!hasUnfinished()){$('timer1TitleInput').value=l.subject;$('boardLessonName').textContent=l.subject;setTimer(1,duration*60,false);Object.assign(state,lessonLayout(l));state.checklist=l.checklist.map(text=>({id:uid(),text,done:false}));renderChecklist();}saveProfile();renderScheduleCards();$('lessonEditor').close();};
@@ -500,7 +546,7 @@ function listenCloud(){for(const kind of ['teachers','classes','profiles']){cons
 cloudSubs.push(cloud.fsSDK.onSnapshot(cloud.fsSDK.doc(cloud.db,'schools','klasskampen','settings','championship'),snapshot=>{const data=snapshot.exists()?snapshot.data():null;if(data&&Number.isFinite(data.resetAt)){dbData.championshipResetAt=data.resetAt;writeLocal();renderHighscoreTable();}},handleCloudFailure));
 cloudSubs.push(cloud.fsSDK.onSnapshot(cloud.fsSDK.collection(cloud.db,'schools','klasskampen','sessions'),snapshot=>{for(const doc of snapshot.docs){const r=doc.data();if(validRecord(r)){const i=dbData.records.findIndex(x=>x.id===r.id);if(i>=0)dbData.records[i]={...r,cloudSaved:true};else dbData.records.push({...r,cloudSaved:true});}}writeLocal();renderHighscoreTable();},handleCloudFailure));}
 function handleCloudFailure(error){cloudReady=false;cloudText('Molnsynk behöver kontrolleras.',cloudErrorMessage(error));$('cloudRetryBtn').disabled=false;}
-function acceptRemote(kind,id,raw,force=false){const key=kind+id,revision=raw.revision||0,known=dbData.revisions[key]||0;if(!force&&dbData.pending[kind].includes(id)){if(revision>known){conflicts.set(key,{kind,id,raw});renderConflicts();}return;}if(!force&&kind==='profiles'&&id===teacher().id&&(hasUnfinished()||$('lessonEditor').open)){queuedRemoteProfiles.set(id,raw);return;}if(kind==='profiles'){dbData.profiles[id]=copy(raw.data);if(id===teacher().id){hydrateProfile();}}else{const list=dbData[kind],idx=list.findIndex(x=>x.id===id),entity={id,name:raw.name,archived:raw.archived};if(idx>=0)list[idx]=entity;else list.push(entity);if(kind==='teachers'&&!dbData.profiles[id])dbData.profiles[id]=defaultProfile();}dbData.revisions[key]=revision;
+function acceptRemote(kind,id,raw,force=false){const key=kind+id,revision=raw.revision||0,known=dbData.revisions[key]||0;if(!force&&dbData.pending[kind].includes(id)){if(revision>known){conflicts.set(key,{kind,id,raw});renderConflicts();}return;}if(!force&&kind==='profiles'&&id===teacher().id&&(hasUnfinished()||$('lessonEditor').open)){queuedRemoteProfiles.set(id,raw);return;}if(kind==='profiles'){dbData.profiles[id]=copy(raw.data);if(id===teacher().id){hydrateProfile();if(startupLessonSelection)selectStartupLesson();}}else{const list=dbData[kind],idx=list.findIndex(x=>x.id===id),entity={id,name:raw.name,archived:raw.archived};if(idx>=0)list[idx]=entity;else list.push(entity);if(kind==='teachers'&&!dbData.profiles[id])dbData.profiles[id]=defaultProfile();}dbData.revisions[key]=revision;
 if(!dbData.teachers.some(t=>t.id===dbData.currentTeacherId&&!t.archived)&&!hasUnfinished()){dbData.currentTeacherId=dbData.teachers.find(t=>!t.archived)?.id||dbData.currentTeacherId;hydrateProfile();}conflicts.delete(key);}
 function renderConflicts(){const container=$('cloudConflicts');container.replaceChildren();for(const [key,c] of conflicts){const row=document.createElement('div');row.style.marginTop='10px';const title=document.createElement('p');title.textContent='Ändrad på en annan dator: '+(c.kind==='profiles'?'arbetsytan för '+(dbData.teachers.find(t=>t.id===c.id)?.name||c.id):c.raw.name);const remote=document.createElement('button');remote.textContent='Hämta molnets version';remote.onclick=async()=>{if(hasUnfinished()&&c.kind==='profiles'&&c.id===teacher().id){toast('Avsluta lektionen först.');return;}if(await ask('Hämta molnets version?','Den lokala ändringen av den här posten ersätts. Ta gärna en säkerhetskopia först.',{confirm:'Hämta version'})){dbData.pending[c.kind]=dbData.pending[c.kind].filter(id=>id!==c.id);acceptRemote(c.kind,c.id,c.raw,true);writeLocal();renderControls();renderEntities();renderScheduleCards();renderConflicts();}};const local=document.createElement('button');local.textContent='Behåll den här datorns';local.onclick=async()=>{if(await ask('Behåll datorns version?','Den här posten ersätter molnets nuvarande version vid nästa synkning.',{confirm:'Behåll och synka'})){dbData.revisions[key]=c.raw.revision||0;conflicts.delete(key);markDirty(c.kind,c.id);writeLocal();renderConflicts();}};row.append(title,remote,document.createTextNode(' '),local);container.append(row);}if(queuedRemoteProfiles.size){const note=document.createElement('p');note.textContent='En arbetsyta har uppdaterats i molnet. Den hämtas efter den pågående lektionen, om du inte har egna ändringar.';container.append(note);}}
 function applyQueuedProfile(id){const raw=queuedRemoteProfiles.get(id);if(!raw)return;queuedRemoteProfiles.delete(id);acceptRemote('profiles',id,raw);writeLocal();renderConflicts();}
@@ -758,6 +804,7 @@ async function closeHandQueue() {
 if(!dbData.teachers.some(t=>t.id===dbData.currentTeacherId&&!t.archived))dbData.currentTeacherId=dbData.teachers.find(t=>!t.archived).id;
 initHandPanels();hydrateProfile();renderHighscoreTable();renderScheduleCards();renderEntities();renderIcons();updateAnalogClock();updateSilenceUI();
 if(dbData.draft?.session&&dbData.draft.session.phase!=='ended'&&dbData.draft.session.teacherId===teacher().id){const d=dbData.draft;if(Number.isFinite(d.totalActiveSec)&&d.totalActiveSec>=0&&Number.isFinite(d.totalSilenceAccumulatedSec)&&d.totalSilenceAccumulatedSec>=0&&d.totalSilenceAccumulatedSec<=d.totalActiveSec){session=copy(d.session);session.phase='active';state.currentSilenceSec=Math.max(0,+d.currentSilenceSec||0);state.sessionRecordSec=Math.max(0,+d.sessionRecordSec||0);state.totalActiveSec=d.totalActiveSec;state.totalSilenceAccumulatedSec=d.totalSilenceAccumulatedSec;updateSilenceUI();renderStatus();toast('Din oavslutade mätning har återställts pausad. Starta mikrofonen för att fortsätta.');}}
+selectStartupLesson();renderScheduleCards();
 $('firebaseApiKeyInput').value=cloudConfigPresent()?JSON.stringify(firebaseConfig,null,2):'';document.body.classList.toggle('reduce-motion',!dbData.settings.motion);setMicButton();renderStatus();writeLocal();setupCloud();
 setInterval(()=>{if(state.micActive||state.timer1Running||state.timer2Running)saveProfile(false);},3000);
 
