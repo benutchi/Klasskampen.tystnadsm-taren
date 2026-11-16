@@ -140,6 +140,40 @@ body.classroom-view .check-item:before{display:none}
 #handRows button,.hand-controls button{padding:4px 8px;font-size:12px}
 .classroom-view .hand-controls{display:none}
 
+.layout-tools{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:12px 0;font-size:12px;color:#34594a}
+.layout-tools strong{font-size:13px}.layout-tools button{font-size:12px;padding:7px 12px}
+#boardPanelTabs{justify-content:flex-start;max-width:620px}
+main.board.layout-canvas{position:relative;display:block;flex:none;width:100%;height:780px;min-height:780px;margin-bottom:20px;background-image:radial-gradient(#a9b7aa 1px,transparent 1px);background-size:20px 20px;border:1px dashed #a9b7aa;border-radius:14px}
+.layout-canvas .layout-old-column{display:none!important}
+.layout-canvas>.layout-widget{position:absolute!important;margin:0;min-width:0!important;min-height:0!important;max-height:none;box-sizing:border-box;padding:38px 16px 20px;overflow:auto;flex:none;grid-column:auto;grid-row:auto}
+.layout-canvas .layout-grip{position:absolute;top:5px;left:7px;right:7px;padding:3px 7px;border:0;border-bottom:1px solid #d8e0d5;border-radius:0;background:transparent;font-size:11px;color:#526e5d;text-align:left;cursor:grab;touch-action:none;z-index:5}
+.layout-canvas .layout-resize{position:absolute;bottom:2px;right:2px;padding:0;width:24px;height:24px;background:#e1eade;border:0;color:#45624c;cursor:nwse-resize;touch-action:none;z-index:5}
+.layout-canvas .layout-dragging{z-index:20;box-shadow:0 8px 28px #213c3330;outline:2px solid #6c9273}
+.layout-canvas #bearCard .bear-stage{flex:1;min-height:80px}
+.layout-canvas #bearCard svg.bear-art{max-height:100%;width:100%;height:100%}
+.layout-canvas #bearCard .metric-value{font-size:clamp(22px,3vw,42px)}
+.layout-canvas .timer-panel .timer-face{min-height:70px;height:clamp(70px,11vw,120px);width:clamp(70px,11vw,120px)}
+.layout-canvas #handRows{font-size:13px}.layout-canvas .hand-join strong{font-size:16px}
+.classroom-view .layout-tools{display:flex!important;flex:none;margin:4px 0}
+.classroom-view .layout-grip,.classroom-view .layout-resize{display:block!important;opacity:.55}
+.classroom-view .layout-widget:hover .layout-grip,.classroom-view .layout-widget:hover .layout-resize{opacity:1}
+.classroom-view main.board.layout-canvas{height:0;min-height:0;flex:1;background:none;border:0}
+.classroom-view .layout-canvas>.layout-widget{padding:32px 12px 20px}
+.classroom-view #boardPanelTabs{display:none}
+.classroom-view .layout-canvas .timer-panel{display:flex;flex-direction:column;gap:4px}
+@media(max-width:700px){main.board.layout-canvas{height:1000px;min-height:1000px}.layout-canvas>.layout-widget{padding:32px 8px 22px}.layout-canvas .layout-grip{font-size:10px}.layout-canvas #checklistHeaderTitle{font-size:16px}.layout-canvas .check-item textarea{font-size:16px}}
+
+.layout-canvas .layout-grip{right:36px}
+.layout-canvas .layout-hide{position:absolute;right:5px;top:4px;width:27px;height:27px;padding:0;display:grid;place-items:center;border:0;background:transparent;font-size:23px;color:#526e5d;z-index:6}
+.layout-visibility-menu{position:relative}
+.layout-visibility-menu summary{cursor:pointer;padding:7px 12px;border:1px solid #cbd6cc;border-radius:9px;background:#fff;color:#34594a}
+.layout-visibility-choices{position:absolute;top:100%;left:0;min-width:190px;padding:12px;background:#fff;border:1px solid #cbd6cc;border-radius:10px;box-shadow:0 8px 28px #213c3320;z-index:1000;display:grid;gap:9px}
+.layout-visibility-choices label{display:flex;align-items:center;gap:9px;font-size:13px;margin:0;cursor:pointer}
+.layout-visibility-choices input{width:17px;height:17px}
+.layout-visibility-menu:not([open]) .layout-visibility-choices{display:none}
+.classroom-view .layout-canvas .layout-hide{display:grid!important;opacity:.6}
+.classroom-view .layout-widget:hover .layout-hide{opacity:1}
+
 body.reduce-motion *{animation:none!important;transition:none!important}</style></head>
 <body>
 <!-- Offentlig Firebase-webbkonfiguration. Lägg aldrig ett lösenord eller en privat nyckel här. -->
@@ -822,5 +856,272 @@ setInterval(() => { renderWakeUndo(); }, 500);
 
 async function startTestLesson(){if(micBusy||hasUnfinished()){toast('Avsluta den pågående lektionen innan du provar.');return;}if($('ceremonyDialog').open){toast('Stäng resultatet innan du provar.');return;}resetSession();startSession(true);$('timer1TitleInput').value='Provlektion · 5 minuter';$('boardLessonName').textContent='Provlektion · inga resultat sparas';session.subject='Provlektion';setTimer(1,300,false);state.timer2Running=false;timerDeadlines[2]=0;$('timer2ToggleBtn').textContent='Starta';await initMic();if(!state.micActive){resetSession();hydrateProfile();return;}state.timer1Running=true;timerDeadlines[1]=Date.now()+300000;$('timer1ToggleBtn').textContent='Pausa';renderStatus();toast('Provlektionen är igång. Prova ljudreglaget, Paus och Ångra väckning.');}
 $('startTestLessonBtn').onclick=startTestLesson;
+
+const layoutBoard = document.querySelector('main.board');
+const layoutWidgets = [
+  ['checklistCard','Checklista',{x:0,y:0,w:31,h:53}],
+  ['instructionsCard','Instruktioner',{x:0,y:55,w:31,h:45}],
+  ['handCard','Handuppräckning',{x:33,y:76,w:33,h:24}],
+  ['bearCard','Björnen',{x:33,y:0,w:33,h:74}],
+  ['mainTimerCard','Lektionstimer',{x:68,y:0,w:32,h:36}],
+  ['secondTimerCard','Extra timer',{x:68,y:38,w:32,h:36}],
+  ['layoutClock','Klockan',{x:68,y:76,w:32,h:24}]
+];
+let layoutPositions = {};
+let layoutDirty = false;
+let layoutTopLayer = 10;
+
+function activeLayoutLesson() {
+  return Object.values(state.schedule).flat().find(lesson => String(lesson.id) === String(activeLessonId));
+}
+
+function cleanBoardLayout(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const result = {};
+  for (const [id,,standard] of layoutWidgets) {
+    const position = value[id];
+    if (!position || !['x','y','w','h'].every(key => Number.isFinite(position[key]))) return null;
+    const w = Math.max(8, Math.min(100, position.w));
+    const h = Math.max(8, Math.min(100, position.h));
+    result[id] = {
+      x: Math.max(0, Math.min(100-w, position.x)),
+      y: Math.max(0, Math.min(100-h, position.y)),
+      w, h, visible: typeof position.visible === 'boolean' ? position.visible : true
+    };
+  }
+  return result;
+}
+const clock = document.querySelector('.clock-panel');
+clock.id = 'layoutClock';
+const tools = document.createElement('div');
+tools.className = 'layout-tools';
+tools.innerHTML = '<strong>Ordna lektionsvyn</strong><span id="layoutLessonLabel"></span><button id="saveLayoutDemo">Spara layout</button><button id="resetLayoutDemo">Default</button><span id="layoutFeedback" role="status"></span>';
+const visibilityMenu = document.createElement('details');
+visibilityMenu.className = 'layout-visibility-menu';
+const menuTitle = document.createElement('summary');
+menuTitle.textContent = 'Visa rutor';
+visibilityMenu.append(menuTitle);
+const menuChoices = document.createElement('div');
+menuChoices.className = 'layout-visibility-choices';
+visibilityMenu.append(menuChoices);
+layoutWidgets.forEach(([id,label]) => {
+  const option = document.createElement('label');
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.dataset.widget = id;
+  input.setAttribute('aria-label', label);
+  input.onchange = () => {
+    layoutPositions[id].visible = input.checked;
+    restoreWidgetVisibility();
+    markLayoutDirty();
+  };
+  option.append(input,document.createTextNode(label));
+  menuChoices.append(option);
+});
+tools.insertBefore(visibilityMenu,tools.querySelector('#layoutFeedback'));
+layoutBoard.before(tools);
+const tabs = document.getElementById('boardPanelTabs');
+tools.after(tabs);
+layoutBoard.classList.add('layout-canvas');
+function drawWidget(id) {
+  const {x,y,w,h} = layoutPositions[id];
+  Object.assign($(id).style,{left:x+'%',top:y+'%',width:w+'%',height:h+'%'});
+}
+function markLayoutDirty() {
+  layoutDirty = true;
+  $('layoutFeedback').textContent = 'Ändringar i layouten är inte sparade.';
+}
+function applyLessonLayout() {
+  layoutDirty = false;
+  if (activeLessonId == null && session?.lessonId) activeLessonId = session.lessonId;
+  const saved = cleanBoardLayout(activeLayoutLesson()?.boardLayout);
+  const split = displayedContentSplit();
+  layoutPositions = Object.fromEntries(layoutWidgets.map(([id,,standard]) => {
+    const visible = id === 'handCard' ? false
+      : id === 'checklistCard' ? split > 0
+      : id === 'instructionsCard' ? split < 100
+      : id === 'secondTimerCard' ? state.secondTimerVisible : true;
+    return [id,{...standard,visible,...saved?.[id]}];
+  }));
+  layoutWidgets.forEach(([id]) => { $(id).style.zIndex = ''; drawWidget(id); });
+  $('layoutLessonLabel').textContent = $('timer1TitleInput').value;
+  $('layoutFeedback').textContent = saved ? 'Sparad layout för denna lektion.' : 'Standardlayout för denna lektion.';
+  $('saveLayoutDemo').disabled = !activeLayoutLesson();
+  restoreWidgetVisibility();
+}
+layoutWidgets.forEach(([id,label]) => {
+  const panel = $(id);
+  layoutBoard.append(panel);
+  panel.classList.add('layout-widget');
+  const grip = document.createElement('button');
+  grip.type = 'button';
+  grip.className = 'layout-grip';
+  grip.textContent = '⠿ ' + label;
+  grip.setAttribute('aria-label','Flytta '+label);
+  const resize = document.createElement('button');
+  resize.type = 'button';
+  resize.className = 'layout-resize';
+  resize.textContent = '◢';
+  resize.setAttribute('aria-label','Ändra storlek på '+label);
+  const hide = document.createElement('button');
+  hide.type = 'button';
+  hide.className = 'layout-hide';
+  hide.textContent = '×';
+  hide.setAttribute('aria-label','Dölj '+label);
+  hide.onclick = () => {
+    layoutPositions[id].visible = false;
+    restoreWidgetVisibility();
+    markLayoutDirty();
+    menuTitle.focus();
+  };
+  panel.append(hide);
+  panel.prepend(grip);
+  panel.append(resize);
+  function begin(event,mode) {
+    if(event.button !== 0) return;
+    event.preventDefault();
+    const handle = event.currentTarget;
+    panel.style.zIndex = String(++layoutTopLayer);
+    const start = {...layoutPositions[id]};
+    const bounds = layoutBoard.getBoundingClientRect();
+    const origin = {x:event.clientX,y:event.clientY};
+    handle.setPointerCapture(event.pointerId);
+    panel.classList.add('layout-dragging');
+    handle.onpointermove = move => {
+      if(!handle.hasPointerCapture(move.pointerId)) return;
+      const dx = (move.clientX-origin.x)/bounds.width*100;
+      const dy = (move.clientY-origin.y)/bounds.height*100;
+      const snap = value => value;
+      const next = layoutPositions[id];
+      if(mode === 'move') {
+        next.x = Math.max(0,Math.min(100-start.w,snap(start.x+dx)));
+        next.y = Math.max(0,Math.min(100-start.h,snap(start.y+dy)));
+      } else {
+        next.w = Math.max(8,Math.min(100-start.x,snap(start.w+dx)));
+        next.h = Math.max(8,Math.min(100-start.y,snap(start.h+dy)));
+      }
+      drawWidget(id);
+      markLayoutDirty();
+    };
+    handle.onlostpointercapture = () => {
+      handle.onpointermove = null;
+      panel.classList.remove('layout-dragging');
+    };
+  }
+  grip.onpointerdown = event => begin(event,'move');
+  resize.onpointerdown = event => begin(event,'resize');
+  for(const [handle,mode] of [[grip,'move'],[resize,'resize']]) {
+    handle.onkeydown = event => {
+      if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)) return;
+      event.preventDefault();
+      const position = layoutPositions[id];
+      const dx = event.key==='ArrowLeft'?-1:event.key==='ArrowRight'?1:0;
+      const dy = event.key==='ArrowUp'?-1:event.key==='ArrowDown'?1:0;
+      if(mode==='move') {
+        position.x=Math.max(0,Math.min(100-position.w,position.x+dx));
+        position.y=Math.max(0,Math.min(100-position.h,position.y+dy));
+      } else {
+        position.w=Math.max(8,Math.min(100-position.x,position.w+dx));
+        position.h=Math.max(8,Math.min(100-position.y,position.h+dy));
+      }
+      drawWidget(id);markLayoutDirty();
+    };
+  }
+});
+$('lessonContentColumn').classList.add('layout-old-column');
+$('rightSideContainer').classList.add('layout-old-column');
+$('saveLayoutDemo').onclick = () => {
+  const lesson = activeLayoutLesson();
+  if (!lesson) return;
+  lesson.boardLayout = copy(layoutPositions);
+  saveProfile();
+  layoutDirty = false;
+  $('layoutFeedback').textContent = 'Layouten är sparad för denna lektion.';
+};
+$('resetLayoutDemo').onclick = () => {
+  const lesson = activeLayoutLesson();
+  if (lesson) {
+    delete lesson.boardLayout;
+    saveProfile();
+  }
+  applyLessonLayout();
+};
+const loadOriginalLesson = loadLessonToBoard;
+loadLessonToBoard = async lesson => {
+  if(hasUnfinished()) return loadOriginalLesson(lesson);
+  await loadOriginalLesson(lesson);
+  applyLessonLayout();
+};
+const plannerLayout = document.createElement('button');
+plannerLayout.type = 'button';
+plannerLayout.textContent = 'Ordna layout på tavlan';
+plannerLayout.onclick = async () => {
+  if(!editingLesson) { toast('Spara den nya lektionen först, öppna den sedan för att ordna layouten.'); return; }
+  const lesson = editingLesson;
+  if (!$('lessonForm').reportValidity()) return;
+  $('lessonForm').dispatchEvent(new Event('submit', {cancelable: true}));
+  if ($('lessonEditor').open) return;
+  await loadLessonToBoard(lesson);
+};
+$('lessonForm').append(plannerLayout);
+document.querySelectorAll('#boardPanelTabs button').forEach(button => {
+  button.onclick = () => {
+    const panel = $(button.getAttribute('aria-controls'));
+    layoutPositions[panel.id].visible = panel.classList.contains('hidden');
+    restoreWidgetVisibility();
+    markLayoutDirty();
+  };
+});
+applyLessonLayout();
+
+function restoreWidgetVisibility() {
+  menuChoices.querySelectorAll('input').forEach(input => {
+    input.checked = layoutPositions[input.dataset.widget].visible;
+  });
+  layoutWidgets.forEach(([id]) => $(id).classList.toggle('hidden', !layoutPositions[id].visible));
+  document.querySelectorAll('#boardPanelTabs button').forEach(button => {
+    button.setAttribute('aria-pressed',String(layoutPositions[button.getAttribute('aria-controls')].visible));
+  });
+}
+const renderOriginalContent = renderLessonContent;
+renderLessonContent = () => {
+  renderOriginalContent();
+  restoreWidgetVisibility();
+};
+
+// Samma synlighetsval används även av de äldre knapparna på tavlan.
+$('toggleSecondTimerBtn').onclick = () => {
+  layoutPositions.secondTimerCard.visible = !layoutPositions.secondTimerCard.visible;
+  restoreWidgetVisibility();
+  markLayoutDirty();
+};
+$('hideHandQueue').onclick = () => {
+  layoutPositions.handCard.visible = false;
+  restoreWidgetVisibility();
+  markLayoutDirty();
+};
+
+const hydrateOriginalProfile = hydrateProfile;
+hydrateProfile = () => {
+  hydrateOriginalProfile();
+  const inferred = Object.values(state.schedule).flat().find(lesson =>
+    lesson.subject === $('timer1TitleInput').value &&
+    lesson.classTarget === activeClass().name
+  );
+  activeLessonId = inferred?.id ?? null;
+  applyLessonLayout();
+};
+const selectOriginalStartupLesson = selectStartupLesson;
+selectStartupLesson = now => {
+  selectOriginalStartupLesson(now);
+  if (!hasUnfinished()) applyLessonLayout();
+};
+
+const resetOriginalSession = resetSession;
+resetSession = () => {
+  resetOriginalSession();
+  activeLessonId = null;
+  applyLessonLayout();
+};
 
 </script></body></html>
