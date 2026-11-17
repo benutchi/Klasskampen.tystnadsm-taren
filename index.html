@@ -175,8 +175,8 @@ main.board.layout-canvas{position:relative;display:block;flex:none;width:100%;he
 .classroom-view .layout-widget:hover .layout-hide{opacity:1}
 
 /* Siffrorna följer rutans storlek i stället för hela skärmens höjd. */
-.layout-canvas .timer-face{container-type:inline-size}
-.layout-canvas .timer-face span{font-size:28px;font-size:clamp(16px,28cqw,38px);white-space:nowrap}
+.layout-canvas .timer-face{container-type:inline-size;flex-shrink:0;aspect-ratio:1;display:block}
+.layout-canvas .timer-face span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;font-size:clamp(14px,22cqw,32px);white-space:nowrap;line-height:1;letter-spacing:-.04em}
 .layout-canvas #layoutClock{container-type:inline-size}
 .layout-canvas #analogDigitalDisplay{font-size:28px;font-size:clamp(20px,10cqw,36px);white-space:nowrap}
 
