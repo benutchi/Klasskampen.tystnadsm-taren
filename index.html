@@ -180,6 +180,57 @@ main.board.layout-canvas{position:relative;display:block;flex:none;width:100%;he
 .layout-canvas #layoutClock{container-type:inline-size}
 .layout-canvas #analogDigitalDisplay{font-size:28px;font-size:clamp(20px,10cqw,36px);white-space:nowrap}
 
+/* Lugn arbetsyta där standardvyn ryms i fönstret. */
+main.board.layout-canvas{background:none;border:0;border-radius:0;margin-bottom:8px}
+.layout-tools{gap:7px;margin:7px 0}
+.layout-tools>strong,.layout-tools>#layoutLessonLabel{display:none}
+.layout-tools #layoutFeedback{font-size:11px}
+.layout-canvas>.layout-widget{padding-top:20px}
+.layout-canvas .layout-grip{top:0;height:18px;font-size:10px;opacity:0;border:0}
+.layout-canvas .layout-hide,.layout-canvas .layout-resize{opacity:0}
+.layout-canvas .layout-widget:hover .layout-grip,.layout-canvas .layout-widget:focus-within .layout-grip,
+.layout-canvas .layout-widget:hover .layout-hide,.layout-canvas .layout-widget:focus-within .layout-hide,
+.layout-canvas .layout-widget:hover .layout-resize,.layout-canvas .layout-widget:focus-within .layout-resize{opacity:1}
+.layout-canvas .timer-panel{display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 8px;align-content:center;align-items:center}
+.layout-canvas .timer-title{grid-column:1/-1;font-size:13px}
+.layout-canvas .timer-panel .timer-face{grid-column:1;grid-row:2/5;width:72px;height:72px;min-height:72px;margin:0}
+.layout-canvas .timer-edit,.layout-canvas .quick-timer,.layout-canvas .timer-controls{grid-column:2;margin:0;gap:3px}
+.layout-canvas .timer-edit{flex-wrap:wrap}
+.layout-canvas .timer-edit input{width:38px;padding:3px}
+.layout-canvas .timer-controls button{padding:5px;font-size:11px}
+.layout-canvas .quick-timer button{font-size:10px;padding:3px 5px}
+.layout-canvas #bearCard .bear-stage{min-height:0;overflow:hidden}
+.layout-canvas #bearSvgWrap{height:100%;max-height:100%;display:flex;align-items:center;justify-content:center}
+.layout-canvas #bearCard .bear-stage svg.bear-art{height:100%;max-height:100%;object-fit:contain}
+.layout-canvas #bearCard .bear-stage::before{max-height:100%;max-width:100%}
+.layout-canvas #bearCard .metrics{margin-top:8px;padding-top:8px}
+.layout-canvas #bearCard .metric-value{font-size:clamp(20px,2.7vw,38px)}
+.layout-canvas #bearSpeechText{font-size:14px;flex:none}
+.layout-canvas #layoutClock{padding-top:20px;gap:10px;flex-direction:row;justify-content:center}
+.layout-canvas #layoutClock .analog{height:50px;width:50px}
+.classroom-view .layout-canvas>.layout-widget{padding-top:20px}
+.classroom-view .layout-widget .layout-grip,.classroom-view .layout-widget .layout-resize,.classroom-view .layout-widget .layout-hide{opacity:0}
+@media(hover:none){.layout-canvas .layout-grip,.layout-canvas .layout-hide,.layout-canvas .layout-resize{opacity:.6}}
+
+.layout-canvas .timer-panel{padding:14px 12px 6px;gap:2px 6px}
+.layout-canvas .timer-panel .timer-face{width:64px;height:64px;min-height:64px}
+.layout-canvas .timer-panel{grid-template-columns:64px minmax(0,1fr)}
+.layout-canvas #layoutClock{padding:14px 12px 6px}
+@media(max-height:950px){
+.layout-canvas #checklistHeaderTitle{font-size:22px}
+.layout-canvas #checklistCard>.eyebrow{display:none}
+.layout-canvas #checklistCard .check-item{padding:5px 0;gap:8px}
+.layout-canvas #checklistCard .check-item textarea{font-size:clamp(14px,1.4vw,22px);line-height:1.3}
+.layout-canvas #checklistCard .checklist-tools{margin:4px 0}
+.layout-canvas #bearCard .bear-top{font-size:10px}
+.layout-canvas #bearCard .scoring-mode-notice{font-size:10px;padding:4px;margin:4px 0}
+.layout-canvas #bearCard .metrics{margin-top:4px;padding-top:4px}
+.layout-canvas #bearCard .focus-strip{padding-top:4px;margin-top:4px}
+}
+
+.layout-canvas #checklistCard .checklist{min-height:0;max-height:none;margin:6px 0;flex:1}
+.layout-canvas #checklistCard .check-item textarea{min-height:1.3em}
+
 body.reduce-motion *{animation:none!important;transition:none!important}</style></head>
 <body>
 <!-- Offentlig Firebase-webbkonfiguration. Lägg aldrig ett lösenord eller en privat nyckel här. -->
@@ -949,12 +1000,39 @@ function applyLessonLayout() {
       : id === 'secondTimerCard' ? state.secondTimerVisible : true;
     return [id,{...standard,visible,...saved?.[id]}];
   }));
-  layoutWidgets.forEach(([id]) => { $(id).style.zIndex = ''; drawWidget(id); });
   $('layoutLessonLabel').textContent = $('timer1TitleInput').value;
   $('layoutFeedback').textContent = saved ? 'Sparad layout för denna lektion.' : 'Standardlayout för denna lektion.';
   $('saveLayoutDemo').disabled = !activeLayoutLesson();
+  if (!saved) {
+    const checklist = layoutPositions.checklistCard;
+    const instructions = layoutPositions.instructionsCard;
+    if (!instructions.visible) checklist.h = 100;
+    if (!checklist.visible) Object.assign(instructions, {y:0,h:100});
+    if (!layoutPositions.handCard.visible) layoutPositions.bearCard.h = 100;
+    if (!layoutPositions.secondTimerCard.visible) {
+      layoutPositions.mainTimerCard.h = 68;
+      Object.assign(layoutPositions.layoutClock, {y:70,h:30});
+    }
+  }
+  layoutWidgets.forEach(([id]) => { $(id).style.zIndex = ''; drawWidget(id); });
   restoreWidgetVisibility();
+  fitLayoutCanvas();
+  requestAnimationFrame(() => document.querySelectorAll('#checklistItemsUl textarea').forEach(fitTextarea));
 }
+function fitLayoutCanvas() {
+  if (document.fullscreenElement) {
+    layoutBoard.style.removeProperty('height');
+    layoutBoard.style.removeProperty('min-height');
+    return;
+  }
+  const top = layoutBoard.getBoundingClientRect().top;
+  const toolbar = document.querySelector('.board-toolbar').getBoundingClientRect().height;
+  const height = Math.max(360, window.innerHeight - top - toolbar - 28);
+  layoutBoard.style.height = height + 'px';
+  layoutBoard.style.minHeight = height + 'px';
+}
+window.addEventListener('resize', fitLayoutCanvas);
+document.addEventListener('fullscreenchange', fitLayoutCanvas);
 layoutWidgets.forEach(([id,label]) => {
   const panel = $(id);
   layoutBoard.append(panel);
