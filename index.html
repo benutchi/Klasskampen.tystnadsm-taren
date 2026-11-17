@@ -231,6 +231,11 @@ main.board.layout-canvas{background:none;border:0;border-radius:0;margin-bottom:
 .layout-canvas #checklistCard .checklist{min-height:0;max-height:none;margin:6px 0;flex:1}
 .layout-canvas #checklistCard .check-item textarea{min-height:1.3em}
 
+/* Anpassa utrymmet till ljudreglagets faktiska höjd. */
+body.classroom-view .board-toolbar{padding-top:8px;padding-bottom:12px;margin-top:0}
+body.classroom-view main.board.layout-canvas{margin-bottom:0}
+@media(max-width:900px){body.classroom-view .board-toolbar{padding-bottom:48px}}
+
 body.reduce-motion *{animation:none!important;transition:none!important}</style></head>
 <body>
 <!-- Offentlig Firebase-webbkonfiguration. Lägg aldrig ett lösenord eller en privat nyckel här. -->
@@ -1020,11 +1025,15 @@ function applyLessonLayout() {
   requestAnimationFrame(() => document.querySelectorAll('#checklistItemsUl textarea').forEach(fitTextarea));
 }
 function fitLayoutCanvas() {
+  const shell = document.querySelector('.app-shell');
   if (document.fullscreenElement) {
+    const toolbarHeight = document.querySelector('.board-toolbar').getBoundingClientRect().height;
+    shell.style.paddingBottom = (toolbarHeight + 8) + 'px';
     layoutBoard.style.removeProperty('height');
     layoutBoard.style.removeProperty('min-height');
     return;
   }
+  shell.style.removeProperty('padding-bottom');
   const top = layoutBoard.getBoundingClientRect().top;
   const toolbar = document.querySelector('.board-toolbar').getBoundingClientRect().height;
   const height = Math.max(360, window.innerHeight - top - toolbar - 28);
@@ -1032,7 +1041,14 @@ function fitLayoutCanvas() {
   layoutBoard.style.minHeight = height + 'px';
 }
 window.addEventListener('resize', fitLayoutCanvas);
-document.addEventListener('fullscreenchange', fitLayoutCanvas);
+document.addEventListener('fullscreenchange', () => {
+  fitLayoutCanvas();
+  requestAnimationFrame(fitLayoutCanvas);
+});
+if (window.ResizeObserver) {
+  const toolbarSizeObserver = new window.ResizeObserver(fitLayoutCanvas);
+  toolbarSizeObserver.observe(document.querySelector('.board-toolbar'));
+}
 layoutWidgets.forEach(([id,label]) => {
   const panel = $(id);
   layoutBoard.append(panel);
