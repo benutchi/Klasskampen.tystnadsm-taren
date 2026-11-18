@@ -238,6 +238,16 @@ body.classroom-view .board-toolbar{padding-top:8px;padding-bottom:12px;margin-to
 body.classroom-view main.board.layout-canvas{margin-bottom:0}
 @media(max-width:900px){body.classroom-view .board-toolbar{padding-bottom:48px}}
 
+/* Projektorvyn använder timerkortets utrymme till en stor urtavla. */
+body.classroom-view .layout-canvas .timer-panel{container-type:size;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px 12px 12px}
+body.classroom-view .layout-canvas .timer-panel .timer-title{flex:none;font-size:clamp(16px,5cqw,26px);text-align:center}
+body.classroom-view .layout-canvas .timer-panel .timer-face{width:min(80cqw,calc(100cqh - 70px),320px);height:auto;min-height:0;aspect-ratio:1;flex:none;margin:0 auto}
+body.classroom-view .layout-canvas .timer-panel .timer-face span{font-size:clamp(14px,22cqw,80px)}
+body.classroom-view .layout-canvas .timer-panel .timer-schedule-hint{flex:none;margin:0;font-size:clamp(11px,3cqw,16px)}
+body.classroom-view .layout-canvas #layoutClock{container-type:size}
+body.classroom-view .layout-canvas #layoutClock .analog{width:min(24cqw,70cqh,110px);height:auto;aspect-ratio:1}
+body.classroom-view .layout-canvas #analogDigitalDisplay{font-size:clamp(24px,min(18cqw,44cqh),64px)}
+
 body.reduce-motion *{animation:none!important;transition:none!important}</style></head>
 <body>
 <!-- Offentlig Firebase-webbkonfiguration. Lägg aldrig ett lösenord eller en privat nyckel här. -->
