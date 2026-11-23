@@ -222,7 +222,7 @@ main.board.layout-canvas{background:none;border:0;border-radius:0;margin-bottom:
 .layout-canvas #checklistHeaderTitle{font-size:22px}
 .layout-canvas #checklistCard>.eyebrow{display:none}
 .layout-canvas #checklistCard .check-item{padding:5px 0;gap:8px}
-.layout-canvas #checklistCard .check-item textarea{font-size:clamp(14px,1.4vw,22px);line-height:1.3}
+.layout-canvas #checklistCard .check-item textarea{font-size:var(--checklist-font,26px);line-height:1.3}
 .layout-canvas #checklistCard .checklist-tools{margin:4px 0}
 .layout-canvas #bearCard .bear-top{font-size:10px}
 .layout-canvas #bearCard .scoring-mode-notice{font-size:10px;padding:4px;margin:4px 0}
@@ -247,6 +247,16 @@ body.classroom-view .layout-canvas .timer-panel .timer-schedule-hint{flex:none;m
 body.classroom-view .layout-canvas #layoutClock{container-type:size}
 body.classroom-view .layout-canvas #layoutClock .analog{width:min(24cqw,70cqh,110px);height:auto;aspect-ratio:1}
 body.classroom-view .layout-canvas #analogDigitalDisplay{font-size:clamp(24px,min(18cqw,44cqh),64px)}
+
+/* Resize the text block separately from its surrounding panel. */
+.text-resize-area{position:relative;flex:none;min-height:48px;padding-bottom:28px;max-height:100%;overflow:auto}
+.text-resize-corner{display:block;position:sticky;bottom:0;right:0;z-index:8;float:right;width:32px;height:28px;min-height:28px;padding:0;border:1px solid #a8baae;background:#edf2ec;color:#365c4c;border-radius:6px;cursor:nwse-resize;touch-action:none;user-select:none;font-size:22px;line-height:1}
+.layout-canvas #checklistCard .text-resize-area .checklist{flex:none;overflow:visible;margin:6px 0}
+#instructionsCard .text-resize-area{min-height:130px}
+#instructionsCard .text-resize-area textarea{display:block;min-height:100px;width:100%;field-sizing:content;resize:none}
+body.classroom-view #instructionsCard .text-resize-area textarea{display:none}
+body.classroom-view #instructionsCard .instructions-display{display:block}
+.text-resize-area:after{content:'';display:block;clear:both}
 
 #eqToggle{position:fixed;right:20px;top:8px;z-index:10001;background:#254835;color:white;font-size:12px}#eqPanel{position:fixed;z-index:10000;bottom:12px;right:16px;left:16px;max-width:1100px;margin:auto;background:#fff;border:2px solid #6a8e72;border-radius:16px;padding:18px 22px;box-shadow:0 12px 60px #17332455;max-height:70dvh;overflow:auto;font-size:14px}#eqPanel[hidden]{display:none}.eqHead{display:flex;align-items:center;justify-content:space-between;gap:16px}.eqHead strong{font-size:20px}.eqHead p{font-size:12px;color:#68796b}.eqMeters{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:12px 0}.eqMeters label{font-size:13px;font-weight:650}.eqMeters span{float:right}.eqMeters label>div{height:9px;background:#edf0e9;border-radius:8px;overflow:hidden;margin-top:5px}.eqMeters i{display:block;height:100%;width:0;background:#aab8bd;transition:width .1s}#eqFilteredFill{background:#3c7253}#eqCanvas{display:block;width:100%;height:145px;border-radius:9px}.eqLegend{display:flex;gap:18px;font-size:11px;color:#5a7060;margin-bottom:4px}.eqLegend span:last-child{margin-left:auto}#eqSliders{display:grid;grid-template-columns:repeat(6,1fr);gap:18px;margin:12px 0}#eqSliders label{display:flex;flex-direction:column;font-size:12px;text-align:center}#eqSliders strong{font-size:14px}#eqSliders input{width:100%;margin:9px 0;padding:0;accent-color:#3c7253}#eqSliders output{font-variant-numeric:tabular-nums}.eqActions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.eqActions button{font-size:12px;min-height:32px}.eqActions label{font-size:13px;font-weight:650}.eqActions input{accent-color:#3c7253}#eqState{font-weight:650;font-size:12px;margin-top:8px}#eqCalibration,.eqNote{font-size:11px;color:#64796b;margin-top:5px}@media(max-width:650px){#eqPanel{left:5px;right:5px;padding:12px}#eqSliders{grid-template-columns:repeat(3,1fr);gap:8px}#eqCanvas{height:100px}.eqLegend{flex-wrap:wrap}.eqLegend span:last-child{margin:0}.eqHead p{max-width:250px}}
 
@@ -406,7 +416,19 @@ function automaticContentSplit(checklist,instructions,width=400,checklistFont=26
  return Math.max(15,Math.min(85,Math.round(100*checkHeight/(checkHeight+instructionHeight))));
 }
 function displayedContentSplit(){const layout=lessonLayout(state),width=$('lessonContentColumn').getBoundingClientRect?.().width||400;return layout.contentSplit<0?automaticContentSplit(state.checklist,layout.instructions,width,layout.checklistFont,layout.instructionsFont):layout.contentSplit;}
-function renderLessonContent(){const layout=lessonLayout(state),split=displayedContentSplit(),column=$('lessonContentColumn');column.classList.toggle('short-checklist',split>0&&split<=30);column.style.setProperty('--checklist-share',split+'fr');column.style.setProperty('--instructions-share',(100-split)+'fr');column.style.setProperty('--split-percent',split+'%');column.style.setProperty('--checklist-font',layout.checklistFont+'px');column.style.setProperty('--instructions-font',layout.instructionsFont+'px');renderClassroomPanels(split);if($('boardInstructions').value!==layout.instructions)$('boardInstructions').value=layout.instructions;$('instructionsDisplay').textContent=layout.instructions;const divider=$('contentDivider');divider.setAttribute('aria-valuenow',String(split));divider.setAttribute('aria-valuetext',split+' procent checklista, '+(100-split)+' procent instruktioner');}
+function renderLessonContent(){const layout=lessonLayout(state),split=displayedContentSplit(),column=$('lessonContentColumn');column.classList.toggle('short-checklist',split>0&&split<=30);column.style.setProperty('--checklist-share',split+'fr');column.style.setProperty('--instructions-share',(100-split)+'fr');column.style.setProperty('--split-percent',split+'%');column.style.setProperty('--checklist-font',layout.checklistFont+'px');column.style.setProperty('--instructions-font',layout.instructionsFont+'px');$('checklistCard').style.setProperty('--checklist-font',layout.checklistFont+'px');$('instructionsCard').style.setProperty('--instructions-font',layout.instructionsFont+'px');document.querySelectorAll('[data-text-size]').forEach(control=>{control.value=String(layout[control.dataset.textSize]);control.setAttribute('aria-valuetext',layout[control.dataset.textSize]+' pixlar');});renderClassroomPanels(split);requestAnimationFrame(()=>document.querySelectorAll('#checklistItemsUl textarea').forEach(fitTextarea));if($('boardInstructions').value!==layout.instructions)$('boardInstructions').value=layout.instructions;$('instructionsDisplay').textContent=layout.instructions;const divider=$('contentDivider');divider.setAttribute('aria-valuenow',String(split));divider.setAttribute('aria-valuetext',split+' procent checklista, '+(100-split)+' procent instruktioner');}
+// The content has its own resize corner, independent of the outer panel.
+for(const [cardId,key,label,contentId] of [['checklistCard','checklistFont','checklistan','checklistItemsUl'],['instructionsCard','instructionsFont','instruktionerna','boardInstructions']]){
+ const corner=document.createElement('button');corner.type='button';corner.className='text-resize-corner';corner.textContent='◢';corner.dataset.textSize=key;corner.setAttribute('aria-label','Ändra textstorlek på '+label);corner.title='Dra utåt för större text, inåt för mindre';
+ const wrap=document.createElement('div');wrap.className='text-resize-area';const content=$(contentId);content.before(wrap);wrap.append(content);if(key==='instructionsFont')wrap.append($('instructionsDisplay'));wrap.append(corner);
+ const sizes=[20,26,34,44];let drag=null;
+ const update=size=>{state[key]=size;renderLessonContent();};
+ const persist=()=>{if(!session?.isTest){const lesson=Object.values(state.schedule).flat().find(l=>l.id===activeLessonId);if(lesson)lesson[key]=state[key];}saveProfile();};
+ corner.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();drag={id:e.pointerId,x:e.clientX,y:e.clientY,index:sizes.indexOf(state[key])};corner.setPointerCapture?.(e.pointerId);};
+ corner.onpointermove=e=>{if(!drag||e.pointerId!==drag.id)return;e.preventDefault();const delta=((e.clientX-drag.x)+(e.clientY-drag.y))/30;update(sizes[Math.max(0,Math.min(3,drag.index+Math.round(delta)))]);};
+ const finish=()=>{if(!drag)return;drag=null;persist();};corner.onpointerup=finish;corner.onpointercancel=finish;corner.onlostpointercapture=finish;
+ corner.onkeydown=e=>{if(!['ArrowDown','ArrowUp','ArrowRight','ArrowLeft'].includes(e.key))return;e.preventDefault();update(sizes[Math.max(0,Math.min(3,sizes.indexOf(state[key])+(['ArrowDown','ArrowRight'].includes(e.key)?1:-1)))]);persist();};
+}
 $('boardInstructions').oninput=()=>{state.instructions=$('boardInstructions').value;state.contentSplit=-1;renderLessonContent();deferSave();};
 let contentDrag=null;
 function setContentSplit(value){state.contentSplit=Math.max(0,Math.min(100,Math.round(value)));renderLessonContent();}
