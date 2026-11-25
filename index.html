@@ -1052,6 +1052,7 @@ layoutWidgets.forEach(([id,label]) => {
   input.setAttribute('aria-label', label);
   input.onchange = () => {
     layoutPositions[id].visible = input.checked;
+    if(input.checked) $(id).style.zIndex = String(++layoutTopLayer);
     restoreWidgetVisibility();
     markLayoutDirty();
   };
@@ -1246,6 +1247,7 @@ document.querySelectorAll('#boardPanelTabs button').forEach(button => {
   button.onclick = () => {
     const panel = $(button.getAttribute('aria-controls'));
     layoutPositions[panel.id].visible = panel.classList.contains('hidden');
+    if(layoutPositions[panel.id].visible) panel.style.zIndex = String(++layoutTopLayer);
     restoreWidgetVisibility();
     markLayoutDirty();
   };
